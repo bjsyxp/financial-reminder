@@ -1411,21 +1411,21 @@
   </div>
   <div class="sheet-body" style="padding:16px">
     <div class="maturity-grid" id="maturityGrid">
-      <div class="maturity-item clickable" onclick="filterMaturityBy('6m', this)">
-        <div class="maturity-label">半年内到期</div>
-        <div class="maturity-value red" id="modalMaturity6m">0.00万</div>
-      </div>
       <div class="maturity-item clickable" onclick="filterMaturityBy('1y', this)">
-        <div class="maturity-label">1年内到期</div>
-        <div class="maturity-value orange" id="modalMaturity1y">0.00万</div>
+        <div class="maturity-label">一年内到期</div>
+        <div class="maturity-value red" id="modalMaturity1y">0.00万</div>
       </div>
       <div class="maturity-item clickable" onclick="filterMaturityBy('2y', this)">
-        <div class="maturity-label">2年内到期</div>
-        <div class="maturity-value purple" id="modalMaturity2y">0.00万</div>
+        <div class="maturity-label">两年内到期</div>
+        <div class="maturity-value orange" id="modalMaturity2y">0.00万</div>
       </div>
       <div class="maturity-item clickable" onclick="filterMaturityBy('3y', this)">
-        <div class="maturity-label">3年内到期</div>
-        <div class="maturity-value teal" id="modalMaturity3y">0.00万</div>
+        <div class="maturity-label">三年内到期</div>
+        <div class="maturity-value purple" id="modalMaturity3y">0.00万</div>
+      </div>
+      <div class="maturity-item clickable" onclick="filterMaturityBy('5y', this)">
+        <div class="maturity-label">五年内到期</div>
+        <div class="maturity-value teal" id="modalMaturity5y">0.00万</div>
       </div>
     </div>
     <div class="maturity-records" id="maturityRecords" style="margin-top:16px">
@@ -1568,21 +1568,21 @@
   
   <!-- Maturity Summary Cards -->
   <div class="maturity-summary">
-    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('6m', this)">
-      <div class="maturity-sum-label">半年内到期</div>
-      <div class="maturity-sum-value red" id="pageMaturity6m">0.00万</div>
-    </div>
     <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('1y', this)">
-      <div class="maturity-sum-label">1年内到期</div>
-      <div class="maturity-sum-value orange" id="pageMaturity1y">0.00万</div>
+      <div class="maturity-sum-label">一年内到期</div>
+      <div class="maturity-sum-value red" id="pageMaturity1y">0.00万</div>
     </div>
     <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('2y', this)">
-      <div class="maturity-sum-label">2年内到期</div>
-      <div class="maturity-sum-value purple" id="pageMaturity2y">0.00万</div>
+      <div class="maturity-sum-label">两年内到期</div>
+      <div class="maturity-sum-value orange" id="pageMaturity2y">0.00万</div>
     </div>
     <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('3y', this)">
-      <div class="maturity-sum-label">3年内到期</div>
-      <div class="maturity-sum-value teal" id="pageMaturity3y">0.00万</div>
+      <div class="maturity-sum-label">三年内到期</div>
+      <div class="maturity-sum-value purple" id="pageMaturity3y">0.00万</div>
+    </div>
+    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('5y', this)">
+      <div class="maturity-sum-label">五年内到期</div>
+      <div class="maturity-sum-value teal" id="pageMaturity5y">0.00万</div>
     </div>
   </div>
   
@@ -1595,7 +1595,7 @@
   <div class="empty-state" id="maturityEmptyState" style="display:none">
     <div class="empty-icon">📅</div>
     <p>暂无到期记录</p>
-    <small>未来3年内没有到期的存款</small>
+    <small>未来5年内没有到期的存款</small>
   </div>
 </div>
 </div>
@@ -2116,27 +2116,29 @@ function renderAll() {
 function renderMaturityPage() {
   var listContainer = document.getElementById('pageMaturityList');
   var emptyEl = document.getElementById('maturityEmptyState');
-  var m6mEl = document.getElementById('pageMaturity6m');
   var m1yEl = document.getElementById('pageMaturity1y');
   var m2yEl = document.getElementById('pageMaturity2y');
   var m3yEl = document.getElementById('pageMaturity3y');
+  var m5yEl = document.getElementById('pageMaturity5y');
   
   if (!listContainer) return;
   
   var now = new Date();
   var year = now.getFullYear();
   var today = new Date(); today.setHours(0,0,0,0);
-  var sixMonthsLater = new Date(today); sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  var oneYearLater = new Date(today); oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+  var twoYearsLater = new Date(today); twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+  var threeYearsLater = new Date(today); threeYearsLater.setFullYear(threeYearsLater.getFullYear() + 3);
+  var fiveYearsLater = new Date(today); fiveYearsLater.setFullYear(fiveYearsLater.getFullYear() + 5);
   
   // 计算各时间段金额
-  var maturity6m = 0, maturity1y = 0, maturity2y = 0, maturity3y = 0;
+  var maturity1y = 0, maturity2y = 0, maturity3y = 0, maturity5y = 0;
   
-  // 收集未来3年内到期的记录（仅限有到期日的）
+  // 收集未来5年内到期的记录（仅限有到期日的）
   var maturityRecs = records.filter(function(r) {
     if (!r.end) return false;
     var endDate = new Date(r.end + 'T00:00:00');
-    var endYear = endDate.getFullYear();
-    return endYear >= year && endYear <= year + 2 && endDate >= today;
+    return endDate >= today && endDate <= fiveYearsLater;
   }).sort(function(a, b) {
     return new Date(a.end) - new Date(b.end);
   });
@@ -2146,18 +2148,17 @@ function renderMaturityPage() {
     var r = records[i];
     if (!r.end) continue;
     var endDate = new Date(r.end + 'T00:00:00');
-    var endYear = endDate.getFullYear();
-    if (endYear === year && endDate >= today && endDate <= sixMonthsLater) maturity6m += r.amount;
-    if (endYear === year && endDate >= today) maturity1y += r.amount;
-    if (endYear === year + 1) maturity2y += r.amount;
-    if (endYear === year + 2) maturity3y += r.amount;
+    if (endDate >= today && endDate < oneYearLater) maturity1y += r.amount;
+    else if (endDate >= oneYearLater && endDate < twoYearsLater) maturity2y += r.amount;
+    else if (endDate >= twoYearsLater && endDate < threeYearsLater) maturity3y += r.amount;
+    else if (endDate >= threeYearsLater && endDate <= fiveYearsLater) maturity5y += r.amount;
   }
   
   // 更新汇总卡片
-  if (m6mEl) m6mEl.textContent = fmtWan(maturity6m);
   if (m1yEl) m1yEl.textContent = fmtWan(maturity1y);
   if (m2yEl) m2yEl.textContent = fmtWan(maturity2y);
   if (m3yEl) m3yEl.textContent = fmtWan(maturity3y);
+  if (m5yEl) m5yEl.textContent = fmtWan(maturity5y);
   
   if (maturityRecs.length === 0) {
     listContainer.innerHTML = '';
@@ -3242,29 +3243,23 @@ function filterMaturityBy(type, el) {
 
   var startDate, endDate;
 
-  if (type === '6m') {
-    targetDate.setMonth(targetDate.getMonth() + 6);
-  } else if (type === '1y') {
-    // 今年
-    startDate = new Date(year, 0, 1);
-    endDate = new Date(year, 11, 31);
+  if (type === '1y') {
+    targetDate.setFullYear(targetDate.getFullYear() + 1);
   } else if (type === '2y') {
-    // 明年
-    startDate = new Date(year + 1, 0, 1);
-    endDate = new Date(year + 1, 11, 31);
+    targetDate.setFullYear(targetDate.getFullYear() + 2);
   } else if (type === '3y') {
-    // 后年
-    startDate = new Date(year + 2, 0, 1);
-    endDate = new Date(year + 2, 11, 31);
+    targetDate.setFullYear(targetDate.getFullYear() + 3);
+  } else if (type === '5y') {
+    targetDate.setFullYear(targetDate.getFullYear() + 5);
   }
 
   var filtered = records.filter(function(r) {
     if (!r.end) return false;
     var ed = new Date(r.end + 'T00:00:00');
-    if (type === '6m') {
+    if (type === '1y') {
       return ed >= today && ed <= targetDate;
     } else {
-      return ed >= startDate && ed <= endDate;
+      return ed >= targetDate;
     }
   }).sort(function(a, b) {
     return new Date(a.end) - new Date(b.end);
@@ -3275,7 +3270,7 @@ function filterMaturityBy(type, el) {
     return;
   }
 
-  var typeLabel = type === '6m' ? '半年内' : type === '1y' ? '今年内' : type === '2y' ? '明年内' : '后年内';
+  var typeLabel = type === '1y' ? '一年内' : type === '2y' ? '两年内' : type === '3y' ? '三年内' : '五年内';
   var html = '<div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">' + typeLabel + '到期明细</div>';
   for (var i = 0; i < filtered.length; i++) {
     var r = filtered[i];
@@ -3314,29 +3309,23 @@ function filterPageMaturityBy(type, el) {
 
   var startDate, endDate;
 
-  if (type === '6m') {
-    targetDate.setMonth(targetDate.getMonth() + 6);
-  } else if (type === '1y') {
-    // 今年
-    startDate = new Date(year, 0, 1);
-    endDate = new Date(year, 11, 31);
+  if (type === '1y') {
+    targetDate.setFullYear(targetDate.getFullYear() + 1);
   } else if (type === '2y') {
-    // 明年
-    startDate = new Date(year + 1, 0, 1);
-    endDate = new Date(year + 1, 11, 31);
+    targetDate.setFullYear(targetDate.getFullYear() + 2);
   } else if (type === '3y') {
-    // 后年
-    startDate = new Date(year + 2, 0, 1);
-    endDate = new Date(year + 2, 11, 31);
+    targetDate.setFullYear(targetDate.getFullYear() + 3);
+  } else if (type === '5y') {
+    targetDate.setFullYear(targetDate.getFullYear() + 5);
   }
 
   var filtered = records.filter(function(r) {
     if (!r.end) return false;
     var ed = new Date(r.end + 'T00:00:00');
-    if (type === '6m') {
+    if (type === '1y') {
       return ed >= today && ed <= targetDate;
     } else {
-      return ed >= startDate && ed <= endDate;
+      return ed >= targetDate;
     }
   }).sort(function(a, b) {
     return new Date(a.end) - new Date(b.end);
@@ -3347,7 +3336,7 @@ function filterPageMaturityBy(type, el) {
     return;
   }
 
-  var typeLabel = type === '6m' ? '半年内' : type === '1y' ? '今年内' : type === '2y' ? '明年内' : '后年内';
+  var typeLabel = type === '1y' ? '一年内' : type === '2y' ? '两年内' : type === '3y' ? '三年内' : '五年内';
   var html = '<div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">' + typeLabel + '到期明细</div>';
   for (var i = 0; i < filtered.length; i++) {
     var r = filtered[i];
@@ -3374,24 +3363,25 @@ function renderMaturityRecords() {
   if (!container) return;
   
   var now = new Date();
-  var year = now.getFullYear();
   var today = new Date(); today.setHours(0,0,0,0);
-  var sixMonthsLater = new Date(today); sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  var oneYearLater = new Date(today); oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+  var twoYearsLater = new Date(today); twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+  var threeYearsLater = new Date(today); threeYearsLater.setFullYear(threeYearsLater.getFullYear() + 3);
+  var fiveYearsLater = new Date(today); fiveYearsLater.setFullYear(fiveYearsLater.getFullYear() + 5);
   
   // 计算各时间段金额
-  var maturity6m = 0, maturity1y = 0, maturity2y = 0, maturity3y = 0;
+  var maturity1y = 0, maturity2y = 0, maturity3y = 0, maturity5y = 0;
   
-  // 收集未来3年内到期的记录（仅定期存款有到期日）
+  // 收集未来5年内到期的记录（仅定期存款有到期日）
   var maturityRecs = records.filter(function(r) {
     if (!r.end) return false;
     var endDate = new Date(r.end + 'T00:00:00');
-    var endYear = endDate.getFullYear();
-    var isInRange = endYear >= year && endYear <= year + 2 && endDate >= today;
+    var isInRange = endDate >= today && endDate <= fiveYearsLater;
     if (isInRange) {
-      if (endYear === year && endDate >= today && endDate <= sixMonthsLater) maturity6m += r.amount;
-      if (endYear === year && endDate >= today) maturity1y += r.amount;
-      if (endYear === year + 1) maturity2y += r.amount;
-      if (endYear === year + 2) maturity3y += r.amount;
+      if (endDate >= today && endDate < oneYearLater) maturity1y += r.amount;
+      else if (endDate >= oneYearLater && endDate < twoYearsLater) maturity2y += r.amount;
+      else if (endDate >= twoYearsLater && endDate < threeYearsLater) maturity3y += r.amount;
+      else if (endDate >= threeYearsLater && endDate <= fiveYearsLater) maturity5y += r.amount;
     }
     return isInRange;
   }).sort(function(a, b) {
@@ -3399,14 +3389,14 @@ function renderMaturityRecords() {
   });
   
   // 更新弹窗内的汇总数据
-  var m6El = document.getElementById('modalMaturity6m');
-  var m1El = document.getElementById('modalMaturity1y');
-  var m2El = document.getElementById('modalMaturity2y');
-  var m3El = document.getElementById('modalMaturity3y');
-  if (m6El) m6El.textContent = fmtWan(maturity6m);
-  if (m1El) m1El.textContent = fmtWan(maturity1y);
-  if (m2El) m2El.textContent = fmtWan(maturity2y);
-  if (m3El) m3El.textContent = fmtWan(maturity3y);
+  var m1yEl = document.getElementById('modalMaturity1y');
+  var m2yEl = document.getElementById('modalMaturity2y');
+  var m3yEl = document.getElementById('modalMaturity3y');
+  var m5yEl = document.getElementById('modalMaturity5y');
+  if (m1yEl) m1yEl.textContent = fmtWan(maturity1y);
+  if (m2yEl) m2yEl.textContent = fmtWan(maturity2y);
+  if (m3yEl) m3yEl.textContent = fmtWan(maturity3y);
+  if (m5yEl) m5yEl.textContent = fmtWan(maturity5y);
   
   if (maturityRecs.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">暂无到期记录</div>';
