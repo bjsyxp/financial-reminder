@@ -1,0 +1,4536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <!-- 鸿蒙/移动端：尽早锁定视口高度，防止地址栏动画导致页面抖动 -->
+  <script>
+  (function() {
+    function setVh() {
+      // 优先使用 visualViewport（更稳定），退回 window.innerHeight
+      var h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      // 使用 1% 作为基础单位
+      document.documentElement.style.setProperty('--vh', h * 0.01 + 'px');
+    }
+    setVh();
+    // visualViewport resize 只用变量，不触发布局
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setVh);
+    } else {
+      window.addEventListener('resize', setVh);
+    }
+  })();
+  </script>
+  <title>理财提醒 V1.0</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --primary-dark: #1d4ed8;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --header-h: 64px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html {
+      height: 100%;
+      /* 鸿蒙/移动端：禁用浏览器橡皮筋回弹，防止页面上下抖动 */
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: auto;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: calc(68px + var(--safe-bottom));
+      /* 鸿蒙/移动端：禁用橡皮筋回弹 + 防止地址栏变化引发重排抖动 */
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+      color: white;
+      padding: 12px 16px;
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      box-shadow: 0 2px 12px rgba(37,99,235,0.35);
+      position: sticky; top: 0; z-index: 100;
+      /* 鸿蒙/移动端：提升到独立合成层，防止 sticky 定位在地址栏变化时抖动 */
+      will-change: transform;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .header-brand { display: flex; align-items: center; gap: 10px; }
+    .header-logo {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .header-title { font-size: 17px; font-weight: 700; }
+    .header-version { font-size: 10px; opacity: 0.7; font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .header-date { font-size: 11px; opacity: 0.8; text-align: right; line-height: 1.4; }
+    .btn-lock {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; font-size: 16px;
+      cursor: pointer; color: white;
+      transition: background 0.15s;
+    }
+    .btn-lock:active { background: rgba(255,255,255,0.3); }
+    .lock-countdown {
+      font-size: 10px; color: rgba(255,255,255,0.5);
+      text-align: right; display: none; margin-top: 2px;
+    }
+    .btn-data {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; font-size: 16px;
+      cursor: pointer; color: white;
+      transition: background 0.15s;
+    }
+    .btn-data:active { background: rgba(255,255,255,0.3); }
+
+    /* ─── Stats ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 12px 12px 0;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      position: relative; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .stat-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .stat-card.blue::before { background: var(--primary); }
+    .stat-card.green::before { background: var(--success); }
+    .stat-card.orange::before { background: var(--warning); }
+    .stat-card.red::before { background: var(--danger); }
+    .stat-card.purple::before { background: #8b5cf6; }
+    .stat-card.teal::before { background: #14b8a6; }
+    .stat-card.amber::before { background: #d97706; }
+    .stat-row-inner { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .stat-icon { font-size: 16px; }
+    .stat-label { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+    .stat-value { font-size: 14px; font-weight: 700; }
+    @media (max-width: 380px) {
+      .stat-label { font-size: 9px; }
+      .stat-value { font-size: 13px; }
+      .stat-card { padding: 10px 8px 8px; }
+    }
+    .stat-value.blue { color: var(--primary); }
+    .stat-value.green { color: var(--success); }
+    .stat-value.orange { color: var(--warning); }
+    .stat-value.red { color: var(--danger); }
+    .stat-value.purple { color: #8b5cf6; }
+    .stat-value.teal { color: #14b8a6; }
+    .stat-value.amber { color: #d97706; }
+
+    /* ─── Main ─── */
+    .main { padding: 12px 12px 0; }
+
+    /* ─── Reminder Banner ─── */
+    .reminder-banner {
+      display: none;
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      align-items: flex-start; gap: 10px;
+    }
+    .reminder-banner.show { display: flex; }
+    .reminder-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .reminder-title { font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 3px; }
+    .reminder-list { font-size: 12px; color: #b45309; }
+    .reminder-list li { list-style: none; padding: 1px 0; }
+    .reminder-list li::before { content: '• '; }
+
+    /* ─── Section Header ─── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .badge {
+      background: var(--primary-light); color: var(--primary);
+      font-size: 11px; padding: 1px 7px; border-radius: 999px; font-weight: 600;
+    }
+
+    /* ─── Filter Bar ─── */
+    .filter-bar {
+      display: flex; gap: 6px;
+      overflow-x: auto; padding-bottom: 6px;
+      margin-bottom: 10px;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-muted);
+      font-size: 12px; white-space: nowrap;
+      cursor: pointer; flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .filter-btn.active {
+      background: var(--primary); color: white; border-color: var(--primary);
+    }
+    .filter-btn:active { opacity: 0.75; }
+
+
+    /* ─── Card List (Mobile) ─── */
+    .card-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .deposit-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: transform 0.15s;
+    }
+    .deposit-card:active { transform: scale(0.99); }
+    .deposit-card.card-expired { border-left: 4px solid var(--danger); }
+    .deposit-card.card-urgent { border-left: 4px solid var(--warning); }
+    .deposit-card.card-ok { border-left: 4px solid var(--success); }
+
+    .card-top {
+      padding: 12px 14px 10px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    }
+    .card-inst-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .card-inst { font-size: 15px; font-weight: 700; color: var(--text); }
+    .inst-tag {
+      font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500;
+    }
+    .tag-deposit { background: #eff6ff; color: #2563eb; }
+    .tag-wealth  { background: #f0fdf4; color: #059669; }
+    .tag-current { background: #fef3c7; color: #d97706; }
+    .card-note { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+    .card-chip-wrap { flex-shrink: 0; }
+    .days-chip {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .days-expired { background: var(--danger-light); color: var(--danger); }
+    .days-urgent  { background: var(--warning-light); color: var(--warning); }
+    .days-soon    { background: #fef9c3; color: #ca8a04; }
+    .days-ok      { background: var(--success-light); color: var(--success); }
+
+    .card-body {
+      padding: 0 14px 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px 4px;
+    }
+    .card-field { display: flex; flex-direction: column; gap: 2px; }
+    .field-label { font-size: 10px; color: var(--text-muted); }
+    .field-value { font-size: 13px; font-weight: 600; }
+    .field-value.red    { color: var(--danger); }
+    .field-value.green  { color: var(--success); }
+    .field-value.orange { color: var(--warning); }
+    .field-value.blue   { color: var(--primary); }
+
+    .card-progress {
+      margin: 0 14px 8px;
+    }
+    .progress-info {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--text-muted); margin-bottom: 4px;
+    }
+    .progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+    .card-footer {
+      padding: 8px 14px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fafcff;
+    }
+    .card-date { font-size: 11px; color: var(--text-muted); }
+    .card-actions { display: flex; gap: 6px; }
+    .btn-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      transition: all 0.15s;
+    }
+    .btn-icon:active { transform: scale(0.9); }
+    .btn-icon.edit:active  { background: var(--primary-light); }
+    .btn-icon.del:active   { background: var(--danger-light); }
+    .btn-icon.renew:active { background: var(--success-light); }
+
+    /* ─── Confirm Dialog ─── */
+    .confirm-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 600;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .confirm-overlay.show {
+      display: block;
+      opacity: 1;
+    }
+    .confirm-box {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      background: white;
+      border-radius: 16px;
+      padding: 24px 20px 20px;
+      width: 280px;
+      max-width: 85vw;
+      z-index: 601;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      opacity: 0;
+      display: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .confirm-box.show {
+      display: block;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .confirm-icon { font-size: 40px; margin-bottom: 10px; }
+    .confirm-msg { font-size: 15px; color: var(--text); margin-bottom: 18px; line-height: 1.5; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-btns button {
+      flex: 1; padding: 10px 0; border-radius: 10px; border: none;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .confirm-btns button:active { opacity: 0.7; }
+    .btn-confirm-cancel {
+      background: #f1f5f9; color: var(--text-muted);
+    }
+    .btn-confirm-ok {
+      background: var(--danger); color: white;
+    }
+    .btn-confirm-ok.green {
+      background: var(--success); color: white;
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted); display: none;
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; margin-bottom: 6px; }
+    .empty-state small { font-size: 13px; }
+
+    /* ─── FAB (Floating Add Button) ─── */
+    .fab {
+      position: fixed;
+      bottom: calc(80px + var(--safe-bottom));
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      font-size: 28px;
+      font-weight: 300;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 200;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      outline: none;
+      /* 鸿蒙系统兼容性 */
+      pointer-events: auto;
+    }
+    .fab.dragging {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(37,99,235,0.55);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .fab.not-dragging {
+      transition: left 0.25s ease, bottom 0.25s ease, transform 0.15s, box-shadow 0.15s;
+    }
+    .fab.snap-left {
+      right: auto;
+      left: 16px;
+    }
+    .fab.snap-right {
+      left: auto;
+      right: 16px;
+    }
+    .fab:active:not(.dragging),
+    .fab.active:not(.dragging) {
+      transform: scale(0.92);
+      box-shadow: 0 2px 10px rgba(37,99,235,0.35);
+    }
+    .fab:focus {
+      outline: none;
+    }
+
+    /* ─── Bottom Sheet Modal ─── */
+    .sheet-overlay {
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 500;
+      display: none;
+    }
+    .sheet-overlay.show {
+      display: block;
+    }
+    .sheet, .bottom-sheet {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: var(--safe-bottom);
+      /* 鸿蒙系统：固定定位在底部 */
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%) translateY(100%);
+      z-index: 501;
+      -webkit-overflow-scrolling: touch;
+      transition: transform 0.25s ease;
+    }
+    .sheet.show, .bottom-sheet.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .sheet-body { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+    .sheet-handle {
+      width: 36px; height: 4px; background: #cbd5e1;
+      border-radius: 2px; margin: 12px auto 4px;
+      flex-shrink: 0;
+    }
+    .sheet-header {
+      padding: 8px 16px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .sheet-title { font-size: 16px; font-weight: 700; }
+    .sheet-close {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: none; background: var(--bg);
+      font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sheet-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 10px;
+      background: white;
+    }
+
+    /* ─── Form ─── */
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .form-label span { color: var(--danger); }
+    .form-input {
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 16px; /* ≥16px prevents iOS zoom */
+      color: var(--text);
+      background: white; width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .form-select {
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      color: var(--text);
+      background: white;
+      width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      /* 鸿蒙系统：确保下拉框正常显示 - 不使用 appearance: none */
+      -webkit-appearance: menulist;
+      -moz-appearance: menulist;
+      appearance: menulist;
+      min-height: 44px;
+      height: auto;
+      line-height: normal;
+      /* 确保 select 在移动端可点击 */
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    /* 针对华为鸿蒙系统的特殊处理 */
+    @supports (-webkit-touch-callout: none) {
+      .form-select {
+        -webkit-appearance: menulist !important;
+        appearance: menulist !important;
+        opacity: 1 !important;
+      }
+    }
+    /* 确保 select 包装器不会阻挡点击 */
+    .select-wrapper {
+      position: relative;
+      display: block;
+      pointer-events: auto;
+    }
+    .select-wrapper .form-select {
+      position: relative;
+      z-index: 1;
+    }
+    /* 日期输入框特殊样式 - 修复鸿蒙系统显示问题 */
+    input[type="date"].form-input {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 44px;
+    }
+    /* 隐藏日期输入框的默认图标，使用自定义样式 */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0.6;
+      cursor: pointer;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .form-calc {
+      background: var(--bg); border-radius: var(--radius-sm);
+      padding: 10px 12px; font-size: 13px; color: var(--text-muted);
+      border: 1px dashed var(--border); line-height: 1.6;
+    }
+    .form-calc strong { color: var(--success); }
+
+    /* ─── Bank Quick Tags ─── */
+    .bank-tags {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 8px;
+    }
+    .bank-tag {
+      display: inline-flex; align-items: center;
+      padding: 5px 12px; border-radius: 999px;
+      font-size: 12px; background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .bank-tag:hover { background: #e2e8f0; }
+    .bank-tag:active { background: var(--primary); color: white; transform: scale(0.94); }
+    .bank-tag.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .btn-cancel {
+      flex: 1; padding: 13px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: white; color: var(--text-muted);
+      font-size: 15px; cursor: pointer;
+    }
+    .btn-cancel:active { background: var(--bg); }
+    .btn-save {
+      flex: 2; padding: 13px;
+      border-radius: var(--radius-sm); border: none;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    }
+    .btn-save:active { opacity: 0.88; }
+
+    /* ─── Toast ─── */
+    .toast-container {
+      position: fixed; bottom: calc(88px + var(--safe-bottom)); left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none; width: calc(100% - 32px); max-width: 360px;
+    }
+    .toast {
+      background: #1e293b; color: white;
+      padding: 12px 16px; border-radius: 12px;
+      font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      animation: toastUp 0.3s ease;
+      display: flex; align-items: center; gap: 8px;
+      pointer-events: all;
+    }
+    .toast.success { background: #059669; }
+    .toast.warning { background: #d97706; }
+    .toast.error   { background: #dc2626; }
+    @keyframes toastUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ─── Lock Screen ─── */
+    #lockScreen {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9000;
+      background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);
+      align-items: center; justify-content: center;
+      padding: 20px;
+      /* 防止输入时页面跳动 */
+      overflow: hidden;
+      touch-action: none;
+      -webkit-overflow-scrolling: auto;
+      /* 鸿蒙系统：使用锁定视口高度变量，防止地址栏动画引发抖动 */
+      position: fixed !important;
+      height: calc(var(--vh, 1vh) * 100) !important;
+      width: 100vw !important;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: transform;
+    }
+    /* 鸿蒙系统：数字键盘按钮样式修复 */
+    #lockScreen .numpad {
+      /* 防止按钮点击时影响布局 */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+    }
+    #lockScreen .num-btn {
+      /* 使用更稳定的布局 */
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    #lockScreen.show { display: flex; }
+    /* 锁定屏幕时禁止 body 滚动 */
+    body.lock-open {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
+      height: 100% !important;
+      touch-action: none !important;
+      /* 鸿蒙系统：防止页面跳动 */
+      top: 0 !important;
+      left: 0 !important;
+    }
+    /* 鸿蒙系统：确保 html 也被锁定 */
+    html.lock-open {
+      overflow: hidden !important;
+      touch-action: none !important;
+      height: 100% !important;
+    }
+    .lock-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 28px;
+      padding: 40px 32px 32px;
+      width: 100%; max-width: 360px;
+      text-align: center;
+      animation: lockIn 0.35s cubic-bezier(.22,.68,0,1.2);
+    }
+    @keyframes lockIn {
+      from { opacity: 0; transform: scale(0.92) translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .lock-icon {
+      width: 68px; height: 68px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px; margin: 0 auto 18px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .lock-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 5px; }
+    .lock-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+    .pin-dots {
+      display: flex; justify-content: center; gap: 14px; margin-bottom: 8px;
+    }
+    .pin-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: transparent; transition: all 0.15s;
+    }
+    .pin-dot.filled { background: white; border-color: white; transform: scale(1.12); }
+    .pin-dot.error  {
+      background: #f87171; border-color: #f87171;
+      animation: dotShake 0.4s ease;
+    }
+    @keyframes dotShake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-5px); }
+      75%     { transform: translateX(5px); }
+    }
+    .pin-hint {
+      font-size: 12px; color: rgba(255,255,255,0.4);
+      margin-bottom: 24px; min-height: 18px;
+    }
+    .pin-hint.error-text { color: #f87171; }
+    .numpad {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; margin-bottom: 20px;
+      /* 防止点击时页面跳动 */
+      touch-action: manipulation;
+    }
+    .num-btn {
+      height: 60px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.07);
+      color: white; font-size: 22px; font-weight: 600;
+      cursor: pointer; user-select: none;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 1px;
+      transition: background 0.1s, transform 0.1s;
+      /* 防止点击时页面跳动 */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .num-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.94); }
+    .num-btn .num-letters { font-size: 8px; color: rgba(255,255,255,0.35); letter-spacing: 1px; font-weight: 400; }
+    .num-btn.zero-btn { grid-column: 2; }
+    .num-btn.empty    { visibility: hidden; }
+    .lock-footer { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .lock-footer a { color: rgba(255,255,255,0.5); text-decoration: underline; cursor: pointer; }
+
+    /* ─── Settings Sheet ─── */
+    .pwd-step { display: none; }
+    .pwd-step.active { display: block; }
+    .pwd-step-hint {
+      font-size: 13px; color: var(--text-muted);
+      background: var(--bg); border-radius: var(--radius-sm);
+      padding: 10px 12px; margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+    .settings-menu { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .settings-btn {
+      width: 100%; padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: white; color: var(--text);
+      font-size: 15px; text-align: left;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .settings-btn:active { background: var(--bg); }
+    .settings-btn.primary { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+    .settings-btn.danger  { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
+    .settings-info {
+      background: #f8fafc; border-radius: var(--radius-sm);
+      padding: 12px 14px; font-size: 13px; color: #64748b;
+      border: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .settings-info-title { font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .settings-info div { padding: 1px 0; }
+
+    /* ─── Tab Navigation ─── */
+    .tab-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 300;
+      padding-bottom: var(--safe-bottom);
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
+      /* 鸿蒙/移动端：提升合成层，防止底栏在地址栏变化时抖动 */
+      will-change: transform;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      /* 防止 safe-area 重算引发跳动：使用 backface-visibility 辅助稳定 */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 11px;
+      gap: 3px;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      border: none;
+      background: none;
+    }
+    .tab-item.active { color: var(--primary); }
+    .tab-icon { font-size: 22px; line-height: 1; }
+    .tab-label { font-weight: 500; }
+
+    /* ─── Page Sections ─── */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* ─── Maturity Modal ─── */
+    .maturity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .maturity-item {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .maturity-item.clickable {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .maturity-item.clickable:active {
+      transform: scale(0.98);
+    }
+    .maturity-item.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .maturity-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .maturity-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .maturity-value.red { color: var(--danger); }
+    .maturity-value.orange { color: #ea580c; }
+    .maturity-value.purple { color: #7c3aed; }
+    .maturity-value.teal { color: #0d9488; }
+    .maturity-record-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .maturity-record-item:last-child { border-bottom: none; }
+    .maturity-record-left { display: flex; flex-direction: column; gap: 2px; }
+    .maturity-record-inst { font-weight: 600; font-size: 14px; }
+    .maturity-record-date { font-size: 11px; color: var(--text-muted); }
+    .maturity-record-right { text-align: right; }
+    .maturity-record-amount { font-weight: 700; font-size: 15px; color: var(--primary); }
+    .maturity-record-days { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── Bank Summary Page (New Design) ─── */
+    .bank-summary-card {
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+      overflow: hidden;
+      border: none;
+    }
+    .bank-summary-header {
+      background: var(--theme-bg, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+      padding: 16px 18px;
+      color: var(--theme-text, #fff);
+    }
+    .bank-summary-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .bank-icon { font-size: 20px; }
+    .bank-name { font-size: 16px; font-weight: 700; }
+    .bank-count {
+      font-size: 11px;
+      background: rgba(255,255,255,0.25);
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .bank-summary-total {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .bank-summary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .bank-stat-box {
+      background: var(--card);
+      padding: 14px 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .bank-stat-icon { font-size: 18px; }
+    .bank-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .bank-stat-value { font-size: 14px; font-weight: 700; }
+    .bank-stat-green { color: #059669; }
+    .bank-stat-orange { color: #ea580c; }
+    .bank-stat-purple { color: #7c3aed; }
+    .bank-summary-breakdown {
+      display: flex;
+      gap: 12px;
+      padding: 12px 18px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .bank-breakdown-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .bank-breakdown-item span:last-child { font-weight: 600; color: var(--text); }
+    .bank-breakdown-current {
+      background: linear-gradient(90deg, #fef3c7, #fde68a);
+      padding: 4px 10px;
+      border-radius: 8px;
+      color: #92400e;
+    }
+    .bank-breakdown-current span:last-child { color: #d97706; }
+    .bank-summary-records {
+      padding: 0;
+    }
+    .bank-records-title {
+      padding: 12px 18px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .bank-deposit-row {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .bank-deposit-row:last-child { border-bottom: none; }
+    .bank-deposit-row:active { background: var(--bg); }
+    .bank-deposit-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .bank-deposit-type { font-size: 13px; font-weight: 600; color: var(--text); }
+    .bank-deposit-rate { font-size: 14px; font-weight: 700; color: var(--danger); }
+    .bank-deposit-detail {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .bank-deposit-date { font-size: 11px; color: var(--text-muted); }
+    .bank-deposit-amount { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .bank-deposit-profit { font-size: 11px; color: #059669; font-weight: 500; }
+
+    /* ─── Maturity Page ─── */
+    .maturity-page { padding: 12px 12px 0; }
+    .maturity-page-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 12px;
+    }
+    .maturity-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 600px) {
+      .maturity-summary { grid-template-columns: repeat(4, 1fr); }
+    }
+    .maturity-sum-item {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .maturity-sum-item.clickable {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .maturity-sum-item.clickable:active {
+      transform: scale(0.98);
+    }
+    .maturity-sum-item.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .maturity-sum-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .maturity-sum-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .maturity-sum-value.red { color: var(--danger); }
+    .maturity-sum-value.orange { color: #ea580c; }
+    .maturity-sum-value.purple { color: #7c3aed; }
+    .maturity-sum-value.teal { color: #0d9488; }
+    .maturity-section {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .maturity-section-title {
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .maturity-list { padding: 8px 14px; }
+    .maturity-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .maturity-list-item:last-child { border-bottom: none; }
+    .maturity-list-left { display: flex; flex-direction: column; gap: 3px; }
+    .maturity-list-inst { font-weight: 600; font-size: 14px; }
+    .maturity-list-meta { font-size: 11px; color: var(--text-muted); }
+    .maturity-list-right { text-align: right; }
+    .maturity-list-amount { font-weight: 700; font-size: 15px; color: var(--primary); }
+    .maturity-list-days {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+    .maturity-list-days.urgent { background: #fee2e2; color: #dc2626; }
+    .maturity-list-days.warning { background: #fef3c7; color: #d97706; }
+    .maturity-list-days.normal { background: #d1fae5; color: #059669; }
+
+    /* ─── Desktop adjustments ─── */
+    @media (min-width: 900px) {
+      body { padding-bottom: 24px; }
+      .header { padding: 16px 24px; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); padding: 16px 20px 0; gap: 12px; }
+      .main { padding: 16px 20px 0; }
+      .fab { display: none; }
+      .section-header .btn-add-desktop { display: inline-flex; }
+      .card-list { display: none; }
+      .table-section { display: block; }
+      .sheet { border-radius: 16px; margin: auto; max-height: 85vh; }
+      .tab-nav { display: none; }
+    }
+    @media (max-width: 899px) {
+      .section-header .btn-add-desktop { display: none; }
+      .table-section { display: none; }
+      .card-list { display: flex; }
+      .tab-nav { display: flex; }
+    }
+
+    /* ─── Desktop Table ─── */
+    .table-section { display: none; }
+    .table-wrap {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden;
+    }
+    .table-wrap table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #f1f5f9; padding: 11px 14px;
+      text-align: left; font-size: 11px; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.5px; white-space: nowrap;
+    }
+    thead th:last-child { text-align: center; }
+    tbody tr { border-top: 1px solid var(--border); }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr.row-expired { background: #fff5f5; }
+    tbody tr.row-expired:hover { background: #fee2e2; }
+    tbody tr.row-urgent { background: #fffbeb; }
+    tbody tr.row-urgent:hover { background: #fef3c7; }
+    tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
+    .inst-name { font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .maturity-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .rate-cell     { color: var(--danger); font-weight: 600; }
+    .amount-cell   { font-weight: 600; }
+    .interest-cell { color: var(--success); font-weight: 600; }
+    .daily-cell    { color: var(--warning); font-weight: 600; }
+    .dt-action-btns { display: flex; gap: 5px; justify-content: center; }
+
+    /* ─── Desktop Add Button ─── */
+    .btn-add-desktop {
+      display: none; align-items: center; gap: 6px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; border: none; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+      transition: opacity 0.15s;
+    }
+    .btn-add-desktop:active { opacity: 0.85; }
+
+    /* ─── Desktop progress ─── */
+    .dt-progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin-top: 4px; width: 80px; }
+    .dt-progress-fill { height: 100%; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- Lock Screen -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon" id="lockIcon">🔒</div>
+    <div class="lock-title">理财提醒</div>
+    <div class="lock-sub" id="lockSubText">请输入密码以解锁</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+      <div class="pin-dot" id="dot4"></div>
+      <div class="pin-dot" id="dot5"></div>
+    </div>
+    <div class="pin-hint" id="pinHint"></div>
+    <div class="numpad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2<span class="num-letters">ABC</span></button>
+      <button class="num-btn" data-num="3">3<span class="num-letters">DEF</span></button>
+      <button class="num-btn" data-num="4">4<span class="num-letters">GHI</span></button>
+      <button class="num-btn" data-num="5">5<span class="num-letters">JKL</span></button>
+      <button class="num-btn" data-num="6">6<span class="num-letters">MNO</span></button>
+      <button class="num-btn" data-num="7">7<span class="num-letters">PQRS</span></button>
+      <button class="num-btn" data-num="8">8<span class="num-letters">TUV</span></button>
+      <button class="num-btn" data-num="9">9<span class="num-letters">WXYZ</span></button>
+      <button class="num-btn empty"></button>
+      <button class="num-btn zero-btn" data-num="0">0</button>
+      <button class="num-btn" data-action="del">⌫</button>
+    </div>
+    <div class="lock-footer" id="lockFooter">
+      <a onclick="skipLock()">跳过（未设置密码）</a>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Sheet -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="bottom-sheet" id="settingsSheet" style="max-height:85vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="settingsTitle">设置</div>
+      <button class="sheet-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <!-- Menu -->
+      <div class="pwd-step active" id="pwdStepMenu">
+        <div class="settings-menu">
+          <button class="settings-btn primary" onclick="startSetPwd()">🔐 设置 / 修改密码</button>
+          <button class="settings-btn" id="btnRemovePwd" onclick="removePwd()">🗑️ 删除密码（关闭保护）</button>
+          <button class="settings-btn danger" onclick="startResetAll()">⚠️ 初始化（清除所有数据）</button>
+        </div>
+        <div class="settings-info">
+          <div class="settings-info-title">💡 密码说明</div>
+          <div>• 使用 6 位数字密码保护数据</div>
+          <div>• 密码保存在本设备浏览器中</div>
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:8px">自动锁定时间</label>
+          <div class="select-wrapper">
+            <select class="form-select" id="autoLockSelect" onchange="saveAutoLock()">
+              <option value="0">不自动锁定</option>
+              <option value="1">1 分钟</option>
+              <option value="5" selected>5 分钟</option>
+              <option value="10">10 分钟</option>
+              <option value="30">30 分钟</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Reset Confirm -->
+      <div class="pwd-step" id="pwdStepReset">
+        <div class="pwd-step-hint" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">⚠️ 此操作将清除所有存款记录、密码和设置，数据不可恢复！</div>
+        <div class="form-group">
+          <label class="form-label">请输入 "RESET" 以确认初始化</label>
+          <input class="form-input" id="resetConfirmInput" placeholder="输入 RESET" autocomplete="off" />
+        </div>
+        <div id="resetHint" style="font-size:12px;margin-top:6px;min-height:18px"></div>
+      </div>
+      <!-- New PIN 1 -->
+      <div class="pwd-step" id="pwdStep1">
+        <div class="pwd-step-hint">请输入新的 6 位数字密码</div>
+        <div class="form-group">
+          <label class="form-label">新密码 <span>*</span></label>
+          <input class="form-input" id="newPin1" type="password" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="请输入 6 位数字" autocomplete="new-password" />
+        </div>
+      </div>
+      <!-- New PIN 2 -->
+      <div class="pwd-step" id="pwdStep2">
+        <div class="pwd-step-hint">请再次输入密码以确认</div>
+        <div class="form-group">
+          <label class="form-label">确认密码 <span>*</span></label>
+          <input class="form-input" id="newPin2" type="password" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="再次输入密码" autocomplete="new-password" />
+        </div>
+        <div id="pinMatchHint" style="font-size:12px;margin-top:6px;min-height:18px"></div>
+      </div>
+      <!-- Verify PIN -->
+      <div class="pwd-step" id="pwdStep3">
+        <div class="pwd-step-hint">⚠️ 请先验证当前密码</div>
+        <div class="form-group">
+          <label class="form-label">当前密码 <span>*</span></label>
+          <input class="form-input" id="verifyPin" type="password" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="输入当前 6 位密码" autocomplete="current-password" />
+        </div>
+        <div id="verifyHint" style="font-size:12px;margin-top:6px;min-height:18px"></div>
+      </div>
+    </div>
+    <div class="sheet-footer" id="settingsFooter" style="display:none">
+      <button class="btn-cancel" onclick="closeSettings()">取消</button>
+      <button class="btn-save" id="settingsNextBtn" onclick="pwdNext()">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Sheet -->
+<div class="sheet-overlay" id="formOverlay">
+  <div class="bottom-sheet" id="formSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="formTitle">添加存款/理财</div>
+      <button class="sheet-close" onclick="closeForm()">✕</button>
+    </div>
+    <div class="sheet-footer" style="border-top:none;border-bottom:1px solid var(--border);padding:12px 16px;margin:0">
+      <button class="btn-cancel" onclick="closeForm()">取消</button>
+      <button class="btn-save" id="btnSaveRecord" type="button" onclick="saveRecord()">保存</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">存款机构名称 <span>*</span></label>
+          <div class="bank-tags">
+            <span class="bank-tag" onclick="pickBank('工商银行')">工商银行</span>
+            <span class="bank-tag" onclick="pickBank('农业银行')">农业银行</span>
+            <span class="bank-tag" onclick="pickBank('建设银行')">建设银行</span>
+            <span class="bank-tag" onclick="pickBank('长安银行')">长安银行</span>
+            <span class="bank-tag" onclick="pickBank('众邦银行')">众邦银行</span>
+            <span class="bank-tag" onclick="pickBank('兴业银行')">兴业银行</span>
+            <span class="bank-tag" onclick="pickBank('新网银行')">新网银行</span>
+            <span class="bank-tag" onclick="pickBank('微众银行')">微众银行</span>
+            <span class="bank-tag" onclick="pickBank('亿联银行')">亿联银行</span>
+            <span class="bank-tag" onclick="pickBank('百信银行')">百信银行</span>
+            <span class="bank-tag" onclick="pickBank('富民银行')">富民银行</span>
+            <span class="bank-tag" onclick="pickBank('蓝海银行')">蓝海银行</span>
+          </div>
+          <input class="form-input" id="fInst" placeholder="如：工商银行、招商银行理财..." autocomplete="off" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">类型</label>
+          <select class="form-select" id="fType" onchange="onTypeChange()">
+            <option value="deposit">定期存款</option>
+            <option value="wealth">理财产品</option>
+            <option value="current">活期存款</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">年利率 (%) <span>*</span></label>
+          <input class="form-input" id="fRate" type="number" step="0.01" min="0" inputmode="decimal" placeholder="如：2.75" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">存入金额 (万元) <span>*</span></label>
+          <input class="form-input" id="fAmount" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="如：10 表示10万元" oninput="calcRateFromMonthly()" />
+        </div>
+        <div class="form-group" id="monthlyIncomeGroup" style="display:none">
+          <label class="form-label">月收益 (元)</label>
+          <input class="form-input" id="fMonthlyIncome" type="number" min="0" step="0.01" inputmode="decimal" placeholder="输入月收益自动算利率" oninput="calcRateFromMonthly()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">存入日期 <span>*</span></label>
+          <input class="form-input" id="fStart" type="date" min="2000-01-01" max="2099-12-31" oninput="onStartManualEdit()" />
+        </div>
+        <div class="form-group" id="termGroup">
+          <label class="form-label">存款期限</label>
+          <select class="form-select" id="fTerm" onchange="onTermChange()">
+            <option value="">手动填写</option>
+            <option value="3m">3 个月</option>
+            <option value="6m">6 个月</option>
+            <option value="1y">1 年</option>
+            <option value="2y">2 年</option>
+            <option value="3y">3 年</option>
+            <option value="5y">5 年</option>
+          </select>
+        </div>
+        <div class="form-group full" id="endGroup">
+          <label class="form-label">到期日期 <span id="endRequired">*</span></label>
+          <input class="form-input" id="fEnd" type="date" min="2000-01-01" max="2099-12-31" oninput="onEndManualEdit()" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">备注</label>
+          <input class="form-input" id="fNote" placeholder="选填，如：三年期定存，自动续存..." />
+        </div>
+        <div class="form-group full">
+          <div class="form-calc" id="calcPreviewEl">填写金额、利率和日期后，自动计算利息</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-logo">🏦</div>
+      <div class="header-title">理财提醒 <span class="header-version">V1.0</span></div>
+    </div>
+    <div class="header-right">
+      <div>
+        <div class="header-date" id="headerDate"></div>
+        <div class="lock-countdown" id="lockCountdown"></div>
+      </div>
+      <button class="btn-data" onclick="openDataModal()" title="数据管理">💾</button>
+      <button class="btn-lock" onclick="lockNow()" title="锁定">🔒</button>
+      <button class="btn-lock" onclick="openSettings()" title="设置">⚙️</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row 1 -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-card blue">
+    <div class="stat-row-inner"><span class="stat-icon">💰</span><span class="stat-label">存款总额</span></div>
+    <div class="stat-value blue" id="statTotal">0.00万</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-row-inner"><span class="stat-icon">📈</span><span class="stat-label">总收益</span></div>
+    <div class="stat-value green" id="statInterest">0.00万</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-row-inner"><span class="stat-icon">💰</span><span class="stat-label">活期总额</span></div>
+    <div class="stat-value amber" id="statCurrentTotal">0.00万</div>
+  </div>
+</div>
+
+<!-- Stats Row 2 -->
+<div class="stats-row" id="statsRow2">
+  <div class="stat-card orange">
+    <div class="stat-row-inner"><span class="stat-icon">☀️</span><span class="stat-label">今日总收益</span></div>
+    <div class="stat-value orange" id="statDaily">¥0.00</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-row-inner"><span class="stat-icon">📆</span><span class="stat-label">本月收益</span></div>
+    <div class="stat-value purple" id="statMonthly">¥0.00</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-row-inner"><span class="stat-icon">🗓️</span><span class="stat-label">本年收益</span></div>
+    <div class="stat-value teal" id="statYearly">0.00万</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-row-inner"><span class="stat-icon">⏰</span><span class="stat-label">30天内到期</span></div>
+    <div class="stat-value red" id="statExpiring">0 笔</div>
+  </div>
+</div>
+
+<!-- Maturity Detail Modal -->
+<div class="sheet-overlay" id="maturityModalOverlay">
+<div class="bottom-sheet" id="maturityModal">
+  <div class="sheet-header">
+    <div class="sheet-title">到期金额详情</div>
+    <button class="sheet-close" onclick="closeMaturityModal()">✕</button>
+  </div>
+  <div class="sheet-body" style="padding:16px">
+    <div class="maturity-grid" id="maturityGrid">
+      <div class="maturity-item clickable" onclick="filterMaturityBy('6m', this)">
+        <div class="maturity-label">半年内到期</div>
+        <div class="maturity-value red" id="modalMaturity6m">0.00万</div>
+      </div>
+      <div class="maturity-item clickable" onclick="filterMaturityBy('1y', this)">
+        <div class="maturity-label">1年内到期</div>
+        <div class="maturity-value orange" id="modalMaturity1y">0.00万</div>
+      </div>
+      <div class="maturity-item clickable" onclick="filterMaturityBy('2y', this)">
+        <div class="maturity-label">2年内到期</div>
+        <div class="maturity-value purple" id="modalMaturity2y">0.00万</div>
+      </div>
+      <div class="maturity-item clickable" onclick="filterMaturityBy('3y', this)">
+        <div class="maturity-label">3年内到期</div>
+        <div class="maturity-value teal" id="modalMaturity3y">0.00万</div>
+      </div>
+    </div>
+    <div class="maturity-records" id="maturityRecords" style="margin-top:16px">
+      <!-- 到期记录列表 -->
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Data Management Modal -->
+<div class="sheet-overlay" id="dataModalOverlay">
+<div class="bottom-sheet" id="dataModal">
+  <div class="sheet-header">
+    <div class="sheet-title">数据管理</div>
+    <button class="sheet-close" onclick="closeDataModal()">✕</button>
+  </div>
+  <div class="sheet-body" style="padding:16px">
+    <div class="data-section" style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text)">📤 导出数据</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">将所有存款记录导出为JSON文件，可用于备份或迁移</div>
+      <button class="btn-save" onclick="exportData()" style="width:100%">导出数据到文件</button>
+    </div>
+    <div class="data-section" style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text)">📥 导入数据</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">从JSON文件导入数据，会合并到现有记录中</div>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImportFile(event)">
+      <button class="btn-cancel" onclick="document.getElementById('importFileInput').click()" style="width:100%;border-color:var(--primary);color:var(--primary)">选择文件导入</button>
+    </div>
+    <div class="data-section" style="border-top:1px solid var(--border);padding-top:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text)">⏰ 自动备份</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">设置自动导出备份文件的时间间隔</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="filter-btn" data-backup="0" onclick="setAutoBackup(0)" style="flex:1;min-width:60px">关闭</button>
+        <button class="filter-btn" data-backup="1" onclick="setAutoBackup(1)" style="flex:1;min-width:60px">每天</button>
+        <button class="filter-btn" data-backup="7" onclick="setAutoBackup(7)" style="flex:1;min-width:60px">每周</button>
+        <button class="filter-btn" data-backup="30" onclick="setAutoBackup(30)" style="flex:1;min-width:60px">每月</button>
+      </div>
+      <div id="autoBackupStatus" style="font-size:11px;color:var(--text-muted);text-align:center"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="confirm-overlay" id="deleteOverlay"></div>
+<div class="confirm-box" id="deleteConfirm">
+  <div class="confirm-icon">🗑️</div>
+  <div class="confirm-msg" id="deleteMsg">确定要删除这条记录吗？</div>
+  <div class="confirm-btns">
+    <button class="btn-confirm-cancel" onclick="cancelDelete()">取消</button>
+    <button class="btn-confirm-ok" onclick="confirmDelete()">删除</button>
+  </div>
+</div>
+
+<!-- 续存确认弹窗 -->
+<div class="confirm-overlay" id="renewOverlay"></div>
+<div class="confirm-box" id="renewConfirm">
+  <div class="confirm-icon">🔄</div>
+  <div class="confirm-msg" id="renewMsg">确定要续存这条记录吗？</div>
+  <div class="confirm-btns">
+    <button class="btn-confirm-cancel" onclick="cancelRenew()">取消</button>
+    <button class="btn-confirm-ok green" onclick="confirmRenew()">续存</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="page-section active" id="pageDeposits">
+<div class="main">
+  <!-- Reminder -->
+  <div class="reminder-banner" id="reminderBanner">
+    <div class="reminder-icon">🔔</div>
+    <div>
+      <div class="reminder-title">到期提醒</div>
+      <ul class="reminder-list" id="reminderList"></ul>
+    </div>
+  </div>
+
+  <!-- Section header -->
+  <div class="section-header">
+    <div class="section-title">
+      📋 我的存款
+      <span class="badge" id="totalBadge">0</span>
+    </div>
+    <button class="btn-add-desktop" onclick="openForm()">＋ 添加存款/理财</button>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterBy('all', this)">全部</button>
+    <button class="filter-btn" onclick="filterBy('deposit', this)">定期存款</button>
+    <button class="filter-btn" onclick="filterBy('wealth', this)">理财产品</button>
+    <button class="filter-btn" onclick="filterBy('current', this)">活期存款</button>
+  </div>
+
+  <!-- Mobile Card List -->
+  <div class="card-list" id="cardList"></div>
+
+  <!-- Desktop Table -->
+  <div class="table-section" id="tableSection">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>存款机构</th><th>年利率</th><th>存入金额</th>
+            <th>预计利息</th><th>每日收益</th><th>到期时间</th>
+            <th>存入日期</th><th style="text-align:center">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🏦</div>
+    <p>暂无存款记录</p>
+    <small>点击右下角 ＋ 开始添加</small>
+  </div>
+</div>
+</div>
+
+<!-- Bank Summary Page -->
+<div class="page-section" id="pageBankSummary">
+<div class="bank-page">
+  <div class="bank-page-title">🏦 各银行存款汇总</div>
+  <div id="bankSummaryPage"></div>
+  <div class="empty-state" id="bankEmptyState" style="display:none">
+    <div class="empty-icon">🏦</div>
+    <p>暂无存款记录</p>
+    <small>点击右下角 ＋ 开始添加</small>
+  </div>
+</div>
+</div>
+
+<!-- Maturity Detail Page -->
+<div class="page-section" id="pageMaturity">
+<div class="maturity-page">
+  <div class="maturity-page-title">📅 到期金额详情</div>
+  
+  <!-- Maturity Summary Cards -->
+  <div class="maturity-summary">
+    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('6m', this)">
+      <div class="maturity-sum-label">半年内到期</div>
+      <div class="maturity-sum-value red" id="pageMaturity6m">0.00万</div>
+    </div>
+    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('1y', this)">
+      <div class="maturity-sum-label">1年内到期</div>
+      <div class="maturity-sum-value orange" id="pageMaturity1y">0.00万</div>
+    </div>
+    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('2y', this)">
+      <div class="maturity-sum-label">2年内到期</div>
+      <div class="maturity-sum-value purple" id="pageMaturity2y">0.00万</div>
+    </div>
+    <div class="maturity-sum-item clickable" onclick="filterPageMaturityBy('3y', this)">
+      <div class="maturity-sum-label">3年内到期</div>
+      <div class="maturity-sum-value teal" id="pageMaturity3y">0.00万</div>
+    </div>
+  </div>
+  
+  <!-- Maturity Records List -->
+  <div class="maturity-section">
+    <div class="maturity-section-title">到期明细</div>
+    <div class="maturity-list" id="pageMaturityList"></div>
+  </div>
+  
+  <div class="empty-state" id="maturityEmptyState" style="display:none">
+    <div class="empty-icon">📅</div>
+    <p>暂无到期记录</p>
+    <small>未来3年内没有到期的存款</small>
+  </div>
+</div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="btnAdd" aria-label="添加存款" type="button">＋</button>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Tab Navigation -->
+<nav class="tab-nav">
+  <button class="tab-item active" id="tabDeposits" onclick="switchTab('deposits')">
+    <span class="tab-icon">📋</span>
+    <span class="tab-label">存款列表</span>
+  </button>
+  <button class="tab-item" id="tabMaturity" onclick="switchTab('maturity')">
+    <span class="tab-icon">📅</span>
+    <span class="tab-label">到期详情</span>
+  </button>
+  <button class="tab-item" id="tabBankSummary" onclick="switchTab('bankSummary')">
+    <span class="tab-icon">🏦</span>
+    <span class="tab-label">银行汇总</span>
+  </button>
+</nav>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'mengmeng_deposits_v2';
+const PWD_KEY     = 'mengmeng_pwd_v1';
+const CFG_KEY     = 'mengmeng_cfg_v1';
+
+const TYPE_LABELS = { deposit: '定期存款', wealth: '理财产品', current: '活期存款' };
+const TYPE_TAGS   = { deposit: 'tag-deposit', wealth: 'tag-wealth', current: 'tag-current' };
+
+let records = [];
+let editingId = null;
+let currentFilter = 'all';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+async function hashPin(pin) {
+  try {
+    // 检查 crypto.subtle 是否可用（某些浏览器可能不支持）
+    if (typeof crypto === 'undefined' || !crypto.subtle || !crypto.subtle.digest) {
+      // 降级：使用简单的哈希
+      return simpleHash(pin);
+    }
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch (e) {
+    console.warn('SHA-256 不可用，使用降级哈希:', e);
+    return simpleHash(pin);
+  }
+}
+
+// 简单哈希函数（当 crypto.subtle 不可用时）
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  // 转换为16进制并填充到64位（模拟SHA-256长度）
+  const hex = Math.abs(hash).toString(16).padStart(16, '0');
+  return hex + hex + hex + hex;
+}
+function loadCfg() {
+  if (!storageAvailable) return memoryCfg || {};
+  try { 
+    var raw = localStorage.getItem(CFG_KEY);
+    return raw ? JSON.parse(raw) : {}; 
+  } catch (e) { 
+    return {}; 
+  }
+}
+function saveCfg(c) {
+  memoryCfg = c || {};
+  if (!storageAvailable) return;
+  try { 
+    localStorage.setItem(CFG_KEY, JSON.stringify(c)); 
+  } catch (e) {}
+}
+function getStoredHash() {
+  if (!storageAvailable) return memoryPwd;
+  try { 
+    return localStorage.getItem(PWD_KEY); 
+  } catch (e) { 
+    return null; 
+  }
+}
+function setStoredHash(hash) {
+  memoryPwd = hash;
+  if (!storageAvailable) return;
+  try { 
+    localStorage.setItem(PWD_KEY, hash); 
+  } catch (e) {}
+}
+function removeStoredHash() {
+  memoryPwd = null;
+  if (!storageAvailable) return;
+  try { 
+    localStorage.removeItem(PWD_KEY); 
+  } catch (e) {}
+}
+function todayStr() { return formatLocalDate(new Date()); }
+
+function fmtMoney(n) {
+  return '¥' + Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+// 万元格式化：将元转为万元显示，保留2位小数
+function fmtWan(n) {
+  var wan = n / 10000;
+  return wan.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '万';
+}
+function fmtDate(s) {
+  if (!s) return '-';
+  const d = new Date(s + 'T00:00:00');
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ─── Calculations ─────────────────────────────────────────────────────────────
+function calcDaysBetween(d1, d2) {
+  // 使用UTC避免夏令时偏差
+  var utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  var utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  return Math.floor((utc2 - utc1) / 86400000);
+}
+
+function calcInterest(amount, rate, start, end) {
+  const daily = amount * (rate / 100) / 365;
+  if (!end) {
+    // 活期/理财产品无到期日，按存入日期至今计算收益
+    const daysSinceStart = calcDaysBetween(new Date(start), new Date());
+    const interest = daysSinceStart > 0 ? +(daily * daysSinceStart).toFixed(2) : 0;
+    return { interest: interest, daily: +daily.toFixed(4), days: daysSinceStart };
+  }
+  const days = calcDaysBetween(new Date(start), new Date(end));
+  if (days <= 0) return { interest: 0, daily: +daily.toFixed(4), days: 0 };
+  return { interest: +(daily * days).toFixed(2), daily: +daily.toFixed(4), days };
+}
+function getDaysRemaining(end) {
+  const t = new Date(); t.setHours(0,0,0,0);
+  if (!end) return Infinity;                        // 无到期日返回Infinity
+  const e = new Date(end); e.setHours(0,0,0,0);
+  if (isNaN(e.getTime())) return Infinity;          // 无效日期兜底
+  return calcDaysBetween(t, e);
+}
+function getChip(days) {
+  if (days < 0)  return { cls: 'days-expired', text: `已到期 ${-days} 天` };
+  if (days === 0) return { cls: 'days-expired', text: '今日到期' };
+  if (days <= 7)  return { cls: 'days-urgent',  text: `${days} 天后到期` };
+  if (days <= 30) return { cls: 'days-soon',    text: `${days} 天后到期` };
+  return           { cls: 'days-ok',    text: `${days} 天后到期` };
+}
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
+// 内存存储降级（当 localStorage 不可用时）
+var memoryStorage = [];
+var memoryCfg = {};
+var memoryPwd = null;
+var storageAvailable = false;
+var storageChecked = false;
+
+// IndexedDB 相关
+var idbDB = null;
+var idbInitialized = false;  // IndexedDB 初始化状态
+var idbInitPromise = null;   // 初始化 Promise，确保只初始化一次
+var IDB_NAME = 'MengMengFinanceDB';
+var IDB_VERSION = 1;
+var IDB_STORE = 'records';
+
+// 初始化 IndexedDB（添加状态跟踪，防止重复初始化）
+function initIndexedDB() {
+  // 如果已经初始化过，直接返回 Promise
+  if (idbInitPromise) {
+    return idbInitPromise;
+  }
+  
+  idbInitPromise = new Promise(function(resolve) {
+    if (!window.indexedDB) {
+      console.warn('浏览器不支持 IndexedDB');
+      idbInitialized = false;
+      resolve(false);
+      return;
+    }
+    
+    var request = indexedDB.open(IDB_NAME, IDB_VERSION);
+    
+    request.onerror = function() {
+      console.warn('IndexedDB 打开失败');
+      idbInitialized = false;
+      resolve(false);
+    };
+    
+    request.onsuccess = function(event) {
+      idbDB = event.target.result;
+      idbInitialized = true;
+      console.log('IndexedDB 打开成功');
+      resolve(true);
+    };
+    
+    request.onupgradeneeded = function(event) {
+      var db = event.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'key' });
+      }
+    };
+  });
+  
+  return idbInitPromise;
+}
+
+// 确保 IndexedDB 已初始化后再操作
+function ensureIDBInitialized() {
+  if (!idbInitPromise) {
+    return initIndexedDB();
+  }
+  return idbInitPromise.then(function(ready) {
+    if (!ready || !idbInitialized) {
+      // 初始化失败，尝试重新初始化
+      idbInitPromise = null;
+      return initIndexedDB();
+    }
+    return ready;
+  });
+}
+
+// 从 IndexedDB 读取数据（先确保已初始化）
+function readFromIndexedDB() {
+  return new Promise(function(resolve) {
+    // 如果 IndexedDB 未初始化或初始化失败，返回 null
+    if (!idbInitialized || !idbDB) {
+      console.warn('IndexedDB 未初始化，跳过读取');
+      resolve(null);
+      return;
+    }
+    
+    try {
+      var transaction = idbDB.transaction([IDB_STORE], 'readonly');
+      var store = transaction.objectStore(IDB_STORE);
+      var request = store.get('records');
+      
+      request.onsuccess = function() {
+        resolve(request.result ? request.result.value : null);
+      };
+      
+      request.onerror = function() {
+        console.warn('IndexedDB 读取失败');
+        resolve(null);
+      };
+    } catch (e) {
+      console.warn('IndexedDB 读取异常:', e);
+      resolve(null);
+    }
+  });
+}
+
+// 写入数据到 IndexedDB（先确保已初始化）
+function writeToIndexedDB(data) {
+  return new Promise(function(resolve) {
+    // 如果 IndexedDB 未初始化，先初始化
+    if (!idbInitialized || !idbDB) {
+      console.log('IndexedDB 未初始化，先初始化...');
+      initIndexedDB().then(function(ready) {
+        if (!ready || !idbDB) {
+          console.warn('IndexedDB 初始化失败，无法保存');
+          resolve(false);
+          return;
+        }
+        // 初始化成功后执行写入
+        performWrite();
+      });
+    } else {
+      performWrite();
+    }
+    
+    function performWrite() {
+      try {
+        var transaction = idbDB.transaction([IDB_STORE], 'readwrite');
+        var store = transaction.objectStore(IDB_STORE);
+        var request = store.put({ key: 'records', value: data, timestamp: Date.now() });
+        
+        request.onsuccess = function() {
+          console.log('IndexedDB 写入成功');
+          resolve(true);
+        };
+        
+        request.onerror = function() {
+          console.warn('IndexedDB 写入失败');
+          resolve(false);
+        };
+      } catch (e) {
+        console.warn('IndexedDB 写入异常:', e);
+        resolve(false);
+      }
+    }
+  });
+}
+
+function checkStorage() {
+  if (storageChecked) return storageAvailable;
+  storageChecked = true;
+  
+  try {
+    // 只做存在性检查，不做阻塞性写入测试（鸿蒙 WebView 同步写入会卡主线程）
+    if (typeof localStorage === 'undefined' || localStorage === null) {
+      console.warn('localStorage 不存在');
+      storageAvailable = false;
+      return false;
+    }
+    // 快速验证：尝试读取一个键（只读，不阻塞）
+    localStorage.getItem('__mm_probe__');
+    storageAvailable = true;
+    console.log('localStorage 可用');
+    return true;
+  } catch (e) {
+    console.warn('localStorage 不可用:', e.message || e);
+    storageAvailable = false;
+    return false;
+  }
+}
+
+function loadData() {
+  return new Promise(function(resolve) {
+    // 为 IndexedDB 初始化添加超时保护（HarmonyOS WebView 可能不支持）
+    var idbTimeout = setTimeout(function() {
+      console.warn('IndexedDB 初始化超时，直接使用 localStorage');
+      loadFromLocalStorage();
+    }, 3000); // 3秒超时
+
+    // 先初始化 IndexedDB
+    initIndexedDB().then(function(idbReady) {
+      clearTimeout(idbTimeout);
+      // 尝试从 IndexedDB 读取（优先）
+      return readFromIndexedDB();
+    }).then(function(idbData) {
+      loadFromLocalStorage(idbData);
+    }).catch(function(err) {
+      clearTimeout(idbTimeout);
+      console.error('加载数据出错:', err);
+      loadFromLocalStorage(null);
+    });
+
+    function loadFromLocalStorage(idbData) {
+      if (idbData && Array.isArray(idbData) && idbData.length > 0) {
+        records = idbData;
+        memoryStorage = records.slice();
+        console.log('从 IndexedDB 加载成功，记录数:', records.length);
+        
+        // 同步到 localStorage（双写策略）
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        } catch (e) {}
+        
+        resolve();
+        return;
+      }
+      
+      // IndexedDB 无数据，尝试 localStorage
+      checkStorage();
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          records = JSON.parse(raw);
+          memoryStorage = records.slice();
+          console.log('从 localStorage 加载成功，记录数:', records.length);
+          
+          // 同步到 IndexedDB（双写策略）- 不阻塞主流程
+          writeToIndexedDB(records).catch(function() {});
+          
+          resolve();
+          return;
+        }
+      } catch (e) {
+        console.warn('localStorage 读取失败:', e);
+      }
+      
+      // 都失败，使用内存存储
+      records = memoryStorage.slice();
+      console.log('使用内存存储，记录数:', records.length);
+      resolve();
+    }
+  });
+}
+
+function saveData() {
+  // 确保内存存储始终同步（最后一道防线）
+  memoryStorage = records.slice();
+  
+  var savedToLocal = false;
+  
+  // 1. 保存到 localStorage（同步）
+  checkStorage();
+  if (storageAvailable) {
+    try {
+      var data = JSON.stringify(records);
+      localStorage.setItem(STORAGE_KEY, data);
+      savedToLocal = true;
+      console.log('localStorage 保存成功，记录数:', records.length);
+    } catch (e) {
+      console.error('localStorage 保存失败:', e.message || e);
+      storageAvailable = false;
+    }
+  }
+  
+  // 2. 保存到 IndexedDB（异步，更可靠）- 等待完成后再提示
+  writeToIndexedDB(records).then(function(success) {
+    if (success) {
+      console.log('IndexedDB 保存成功');
+    }
+    
+    // 显示结果提示（只有在至少一个存储成功时才显示成功）
+    if (savedToLocal || success) {
+      showToast('✓ 保存成功', 'success');
+    } else {
+      showToast('⚠️ 保存失败，请检查浏览器存储设置', 'warning');
+    }
+  }).catch(function(err) {
+    console.error('保存出错:', err);
+    if (savedToLocal) {
+      showToast('✓ 保存成功', 'success');
+    } else {
+      showToast('⚠️ 保存失败，浏览器可能限制了存储', 'warning');
+    }
+  });
+}
+
+// 页面离开/切换到后台时自动保存（防止数据丢失）
+function initAutoSave() {
+  var savePending = false;
+  
+  function doSave() {
+    // 内存备份
+    memoryStorage = records.slice();
+    
+    // 保存到 localStorage
+    if (storageAvailable && records.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } catch (e) {}
+    }
+    
+    // 保存到 IndexedDB（更可靠）
+    if (records.length > 0) {
+      writeToIndexedDB(records).catch(function(err) {
+        console.warn('IndexedDB 自动保存失败:', err);
+      });
+    }
+  }
+  
+  function scheduleSave() {
+    if (savePending) return;
+    savePending = true;
+    setTimeout(function() {
+      savePending = false;
+      doSave();
+      console.log('自动保存执行');
+    }, 100);
+  }
+  
+  // 页面切换到后台/隐藏时保存
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      scheduleSave();
+    }
+  });
+  
+  // 页面关闭前保存
+  window.addEventListener('beforeunload', function() {
+    doSave();
+  });
+  
+  // iOS Safari 特殊处理：pagehide 事件
+  window.addEventListener('pagehide', function() {
+    doSave();
+  });
+}
+
+// ─── Tab Navigation ──────────────────────────────────────────────────────────
+var currentTab = 'deposits';
+
+function switchTab(tab) {
+  currentTab = tab;
+  // 切换页面显示
+  var pages = { deposits: 'pageDeposits', bankSummary: 'pageBankSummary', maturity: 'pageMaturity' };
+  var tabs = { deposits: 'tabDeposits', bankSummary: 'tabBankSummary', maturity: 'tabMaturity' };
+  for (var key in pages) {
+    var pageEl = document.getElementById(pages[key]);
+    var tabEl = document.getElementById(tabs[key]);
+    if (pageEl) pageEl.classList.toggle('active', key === tab);
+    if (tabEl) tabEl.classList.toggle('active', key === tab);
+  }
+  // 显示/隐藏 FAB（到期详情页隐藏添加按钮）
+  var fab = document.getElementById('btnAdd');
+  if (fab) fab.style.display = (tab === 'maturity') ? 'none' : '';
+  
+  // 如果切换到到期详情页，刷新数据
+  if (tab === 'maturity') {
+    renderMaturityPage();
+  }
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderAll() {
+  try {
+    renderStats();
+    renderBankSummaryPage();
+    renderList();
+    renderReminders();
+    renderMaturityPage();
+  } catch (e) {
+    console.error('renderAll 出错:', e);
+  }
+}
+
+// 渲染到期详情页面
+function renderMaturityPage() {
+  var listContainer = document.getElementById('pageMaturityList');
+  var emptyEl = document.getElementById('maturityEmptyState');
+  var m6mEl = document.getElementById('pageMaturity6m');
+  var m1yEl = document.getElementById('pageMaturity1y');
+  var m2yEl = document.getElementById('pageMaturity2y');
+  var m3yEl = document.getElementById('pageMaturity3y');
+  
+  if (!listContainer) return;
+  
+  var now = new Date();
+  var year = now.getFullYear();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var sixMonthsLater = new Date(today); sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  
+  // 计算各时间段金额
+  var maturity6m = 0, maturity1y = 0, maturity2y = 0, maturity3y = 0;
+  
+  // 收集未来3年内到期的记录（仅限有到期日的）
+  var maturityRecs = records.filter(function(r) {
+    if (!r.end) return false;
+    var endDate = new Date(r.end + 'T00:00:00');
+    var endYear = endDate.getFullYear();
+    return endYear >= year && endYear <= year + 2 && endDate >= today;
+  }).sort(function(a, b) {
+    return new Date(a.end) - new Date(b.end);
+  });
+  
+  // 计算各时间段金额
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    if (!r.end) continue;
+    var endDate = new Date(r.end + 'T00:00:00');
+    var endYear = endDate.getFullYear();
+    if (endYear === year && endDate >= today && endDate <= sixMonthsLater) maturity6m += r.amount;
+    if (endYear === year && endDate >= today) maturity1y += r.amount;
+    if (endYear === year + 1) maturity2y += r.amount;
+    if (endYear === year + 2) maturity3y += r.amount;
+  }
+  
+  // 更新汇总卡片
+  if (m6mEl) m6mEl.textContent = fmtWan(maturity6m);
+  if (m1yEl) m1yEl.textContent = fmtWan(maturity1y);
+  if (m2yEl) m2yEl.textContent = fmtWan(maturity2y);
+  if (m3yEl) m3yEl.textContent = fmtWan(maturity3y);
+  
+  if (maturityRecs.length === 0) {
+    listContainer.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  
+  if (emptyEl) emptyEl.style.display = 'none';
+  
+  var html = '';
+  for (var j = 0; j < maturityRecs.length; j++) {
+    var rec = maturityRecs[j];
+    var days = getDaysRemaining(rec.end);
+    var daysClass = days <= 7 ? 'urgent' : days <= 30 ? 'warning' : 'normal';
+    var daysText = days === 0 ? '今天到期' : days + '天后到期';
+    var endDate = new Date(rec.end + 'T00:00:00');
+    var endYear = endDate.getFullYear();
+    var yearLabel = endYear === year ? '今年' : endYear === year + 1 ? '明年' : '后年';
+    
+    html += '<div class="maturity-list-item">' +
+      '<div class="maturity-list-left">' +
+        '<span class="maturity-list-inst">' + rec.inst + '</span>' +
+        '<span class="maturity-list-meta">' + yearLabel + ' · ' + fmtDate(rec.end) + ' · ' + rec.rate + '%</span>' +
+      '</div>' +
+      '<div class="maturity-list-right">' +
+        '<span class="maturity-list-amount">' + fmtWan(rec.amount) + '</span>' +
+        '<span class="maturity-list-days ' + daysClass + '">' + daysText + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+  
+  listContainer.innerHTML = html;
+}
+
+// 渲染银行汇总页面 - 全新设计
+function renderBankSummaryPage() {
+  var container = document.getElementById('bankSummaryPage');
+  var emptyEl = document.getElementById('bankEmptyState');
+  if (!container) return;
+  
+  if (records.length === 0) {
+    container.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  
+  // 按银行分组
+  var bankMap = {};
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var inst = r.inst || '其他';
+    if (!bankMap[inst]) {
+      bankMap[inst] = { name: inst, records: [], totalAmount: 0, totalInterest: 0, totalDaily: 0, currentAmount: 0, depositAmount: 0 };
+    }
+    var c = calcInterest(r.amount, r.rate, r.start, r.end);
+    bankMap[inst].records.push({ r: r, c: c });
+    bankMap[inst].totalAmount += r.amount;
+    bankMap[inst].totalInterest += c.interest;
+    bankMap[inst].totalDaily += c.daily;
+    if (r.type === 'current') bankMap[inst].currentAmount += r.amount;
+    else bankMap[inst].depositAmount += r.amount;
+  }
+  
+  // 转为数组并按总金额排序
+  var bankList = [];
+  for (var name in bankMap) {
+    if (bankMap.hasOwnProperty(name)) {
+      bankList.push(bankMap[name]);
+    }
+  }
+  bankList.sort(function(a, b) { return b.totalAmount - a.totalAmount; });
+  
+  // 计算本月天数
+  var now = new Date();
+  var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  
+  // 生成 HTML
+  var html = '';
+  for (var j = 0; j < bankList.length; j++) {
+    var bank = bankList[j];
+    var count = bank.records.length;
+    
+    // 生成各条记录
+    var recordsHtml = '';
+    // 按到期日期排序（无固定期限放后面）
+    var sortedRecords = bank.records.slice().sort(function(a, b) {
+      if (!a.r.end && !b.r.end) return 0;
+      if (!a.r.end) return 1;
+      if (!b.r.end) return -1;
+      return getDaysRemaining(a.r.end) - getDaysRemaining(b.r.end);
+    });
+    
+    for (var m = 0; m < sortedRecords.length; m++) {
+      var item = sortedRecords[m];
+      var hasEnd = item.r.type === 'deposit' && !!item.r.end;
+      var typeIcon = item.r.type === 'current' ? '💰' : '💳';
+      var typeName = TYPE_LABELS[item.r.type] || item.r.type;
+      
+      recordsHtml += '<div class="bank-deposit-row">' +
+        '<div class="bank-deposit-info">' +
+          '<span class="bank-deposit-type">' + typeIcon + ' ' + typeName + '</span>' +
+          '<span class="bank-deposit-rate">' + item.r.rate + '%</span>' +
+        '</div>' +
+        '<div class="bank-deposit-detail">' +
+          '<span class="bank-deposit-date">' + fmtDate(item.r.start) + (hasEnd ? ' → ' + fmtDate(item.r.end) : '') + '</span>' +
+          '<span class="bank-deposit-amount">' + fmtWan(item.r.amount) + '</span>' +
+        '</div>' +
+        '<div class="bank-deposit-profit">预计 +' + fmtMoney(item.c.interest) + '</div>' +
+      '</div>';
+    }
+    
+    // 卡片颜色主题（交替使用不同配色）
+    var cardThemes = [
+      { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: '#fff' },
+      { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', text: '#fff' },
+      { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', text: '#fff' },
+      { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', text: '#fff' },
+      { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', text: '#fff' },
+    ];
+    var theme = cardThemes[j % cardThemes.length];
+    
+    html += '<div class="bank-summary-card" style="--theme-bg:' + theme.bg + ';--theme-text:' + theme.text + '">' +
+      // 卡片头部
+      '<div class="bank-summary-header">' +
+        '<div class="bank-summary-title">' +
+          '<span class="bank-icon">🏦</span>' +
+          '<span class="bank-name">' + bank.name + '</span>' +
+          '<span class="bank-count">' + count + ' 笔</span>' +
+        '</div>' +
+        '<div class="bank-summary-total">' + fmtWan(bank.totalAmount) + '</div>' +
+      '</div>' +
+      
+      // 统计区域
+      '<div class="bank-summary-stats">' +
+        '<div class="bank-stat-box">' +
+          '<span class="bank-stat-icon">📈</span>' +
+          '<span class="bank-stat-label">总收益</span>' +
+          '<span class="bank-stat-value bank-stat-green">' + fmtMoney(bank.totalInterest) + '</span>' +
+        '</div>' +
+        '<div class="bank-stat-box">' +
+          '<span class="bank-stat-icon">📅</span>' +
+          '<span class="bank-stat-label">每日收益</span>' +
+          '<span class="bank-stat-value bank-stat-orange">' + fmtMoney(bank.totalDaily) + '</span>' +
+        '</div>' +
+        '<div class="bank-stat-box">' +
+          '<span class="bank-stat-icon">📆</span>' +
+          '<span class="bank-stat-label">本月收益</span>' +
+          '<span class="bank-stat-value bank-stat-purple">' + fmtMoney(bank.totalDaily * daysInMonth) + '</span>' +
+        '</div>' +
+      '</div>' +
+      
+      // 定期/活期分布
+      (bank.depositAmount > 0 || bank.currentAmount > 0 ? (
+      '<div class="bank-summary-breakdown">' +
+        (bank.depositAmount > 0 ? '<div class="bank-breakdown-item"><span>💳 定期</span><span>' + fmtWan(bank.depositAmount) + '</span></div>' : '') +
+        (bank.currentAmount > 0 ? '<div class="bank-breakdown-item bank-breakdown-current"><span>💰 活期</span><span>' + fmtWan(bank.currentAmount) + '</span></div>' : '') +
+      '</div>') : '') +
+      
+      // 存款明细
+      '<div class="bank-summary-records">' +
+        '<div class="bank-records-title">📋 存款明细</div>' +
+        recordsHtml +
+      '</div>' +
+    '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+function renderStats() {
+  var total=0, interest=0, daily=0, exp30=0, monthly=0, yearly=0;
+  var currentTotal = 0; // 活期存款总额
+  
+  // 获取本月天数和本年天数
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  var daysInYear = isLeapYear ? 366 : 365;
+  
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var c = calcInterest(r.amount, r.rate, r.start, r.end);
+    total += r.amount;
+    interest += c.interest;
+    daily += c.daily;
+    monthly += c.daily * daysInMonth;
+    yearly += c.daily * daysInYear;
+    var d = r.end ? getDaysRemaining(r.end) : null;
+    if (d !== null && d >= 0 && d <= 30) exp30++;
+    
+    // 统计活期存款总额
+    if (r.type === 'current') {
+      currentTotal += r.amount;
+    }
+  }
+  
+  var statTotalEl = document.getElementById('statTotal');
+  var statInterestEl = document.getElementById('statInterest');
+  var statDailyEl = document.getElementById('statDaily');
+  var statMonthlyEl = document.getElementById('statMonthly');
+  var statYearlyEl = document.getElementById('statYearly');
+  var statExpiringEl = document.getElementById('statExpiring');
+  var totalBadgeEl = document.getElementById('totalBadge');
+  var statCurrentTotalEl = document.getElementById('statCurrentTotal');
+  
+  if (statTotalEl) statTotalEl.textContent = fmtWan(total);
+  if (statInterestEl) statInterestEl.textContent = fmtWan(interest);
+  if (statDailyEl) statDailyEl.textContent = fmtMoney(daily);
+  if (statMonthlyEl) statMonthlyEl.textContent = fmtMoney(monthly);
+  if (statYearlyEl) statYearlyEl.textContent = fmtWan(yearly);
+  if (statExpiringEl) statExpiringEl.textContent = exp30 + ' 笔';
+  if (totalBadgeEl) totalBadgeEl.textContent = records.length;
+  
+  // 活期存款总额
+  if (statCurrentTotalEl) statCurrentTotalEl.textContent = fmtWan(currentTotal);
+  
+  // 渲染到期记录列表（内部会更新弹窗数据）
+  renderMaturityRecords();
+}
+
+function getFiltered() {
+  return records.filter(r => {
+    if (currentFilter === 'all')     return true;
+    if (currentFilter === 'expired') return r.end && getDaysRemaining(r.end) < 0;
+    if (currentFilter === 'urgent')  { if (!r.end) return false; const d=getDaysRemaining(r.end); return d>=0&&d<=30; }
+    return r.type === currentFilter;
+  }).sort((a,b) => {
+    var da = a.end ? getDaysRemaining(a.end) : 99999;
+    var db = b.end ? getDaysRemaining(b.end) : 99999;
+    return da - db;
+  });
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const emptyEl = document.getElementById('emptyState');
+  const cardList = document.getElementById('cardList');
+  const tbody = document.getElementById('tableBody');
+
+  if (filtered.length === 0) {
+    emptyEl.style.display = 'block';
+    cardList.innerHTML = '';
+    if (tbody) tbody.innerHTML = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  // Mobile cards
+  cardList.innerHTML = filtered.map(r => {
+    const c = calcInterest(r.amount, r.rate, r.start, r.end);
+    const hasEnd = r.type === 'deposit' && !!r.end;
+    const days = hasEnd ? getDaysRemaining(r.end) : null;
+    const { cls, text } = hasEnd ? getChip(days) : { cls: 'days-ok', text: TYPE_LABELS[r.type] || '无固定期限' };
+    const cardCls = !hasEnd ? '' : days < 0 ? 'card-expired' : days <= 30 ? 'card-urgent' : 'card-ok';
+    const barColor = !hasEnd ? '#14b8a6' : days < 0 ? '#dc2626' : days <= 7 ? '#d97706' : days <= 30 ? '#ca8a04' : '#059669';
+    const progress = (c.days > 0 && hasEnd) ? Math.min(100, Math.round((c.days - Math.max(days,0)) / c.days * 100)) : 0;
+    return `<div class="deposit-card ${cardCls}">
+      <div class="card-top">
+        <div>
+          <div class="card-inst-row">
+            <span class="card-inst">${r.inst}</span>
+            <span class="inst-tag ${TYPE_TAGS[r.type]}">${TYPE_LABELS[r.type]}</span>
+          </div>
+          ${r.note ? `<div class="card-note">📝 ${r.note}</div>` : ''}
+        </div>
+        <div class="card-chip-wrap"><span class="days-chip ${cls}">${text}</span></div>
+      </div>
+      <div class="card-body">
+        <div class="card-field">
+          <span class="field-label">年利率</span>
+          <span class="field-value red">${r.rate}%</span>
+        </div>
+        <div class="card-field">
+          <span class="field-label">存入金额</span>
+          <span class="field-value blue">${fmtWan(r.amount)}</span>
+        </div>
+        <div class="card-field">
+          <span class="field-label">预计利息</span>
+          <span class="field-value green">${fmtMoney(c.interest)}</span>
+        </div>
+        <div class="card-field">
+          <span class="field-label">每日收益</span>
+          <span class="field-value orange">${fmtMoney(c.daily)}</span>
+        </div>
+        <div class="card-field">
+          <span class="field-label">存入日期</span>
+          <span class="field-value" style="font-weight:500;font-size:12px">${fmtDate(r.start)}</span>
+        </div>
+        ${hasEnd ? `<div class="card-field">
+          <span class="field-label">到期日期</span>
+          <span class="field-value" style="font-weight:500;font-size:12px">${fmtDate(r.end)}</span>
+        </div>` : ''}
+      </div>
+      ${hasEnd ? `<div class="card-progress">
+        <div class="progress-info">
+          <span>存期进度 ${progress}%</span>
+          <span>${c.days} 天</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${progress}%;background:${barColor}"></div>
+        </div>
+      </div>` : ''}
+      <div class="card-footer">
+        <span class="card-date">${hasEnd ? '到期 ' + fmtDate(r.end) : TYPE_LABELS[r.type]}</span>
+        <div class="card-actions">
+          ${r.type === 'deposit' && r.end ? '<button class="btn-icon renew" data-action="renew" data-id="' + r.id + '">🔄</button>' : ''}
+          <button class="btn-icon edit"  data-action="edit" data-id="${r.id}">✏️</button>
+          <button class="btn-icon del"   data-action="delete" data-id="${r.id}">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Desktop table
+  if (tbody) {
+    tbody.innerHTML = filtered.map(r => {
+      const c = calcInterest(r.amount, r.rate, r.start, r.end);
+      const hasEnd = r.type === 'deposit' && !!r.end;
+      const days = hasEnd ? getDaysRemaining(r.end) : null;
+      const { cls, text } = hasEnd ? getChip(days) : { cls: 'days-ok', text: TYPE_LABELS[r.type] || '无固定期限' };
+      const rowCls = !hasEnd ? '' : days < 0 ? 'row-expired' : days <= 30 ? 'row-urgent' : '';
+      const barColor = !hasEnd ? '#14b8a6' : days < 0 ? '#dc2626' : days <= 7 ? '#d97706' : days <= 30 ? '#ca8a04' : '#059669';
+      const progress = (c.days > 0 && hasEnd) ? Math.min(100, Math.round((c.days - Math.max(days,0)) / c.days * 100)) : 0;
+      return `<tr class="${rowCls}">
+        <td>
+          <div class="inst-name"><span>${r.inst}</span><span class="inst-tag ${TYPE_TAGS[r.type]}">${TYPE_LABELS[r.type]}</span></div>
+          ${r.note ? `<div class="maturity-date">📝 ${r.note}</div>` : ''}
+        </td>
+        <td class="rate-cell">${r.rate}%</td>
+        <td class="amount-cell">${fmtWan(r.amount)}</td>
+        <td class="interest-cell">${fmtMoney(c.interest)}</td>
+        <td class="daily-cell">${fmtMoney(c.daily)}</td>
+        <td>
+          <span class="days-chip ${cls}">${text}</span>
+          <div class="maturity-date">${hasEnd ? fmtDate(r.end) : TYPE_LABELS[r.type]}</div>
+          ${hasEnd ? `<div class="dt-progress-bar"><div class="dt-progress-fill" style="width:${progress}%;background:${barColor};height:100%;border-radius:2px"></div></div>` : ''}
+        </td>
+        <td><div class="maturity-date">${fmtDate(r.start)}</div></td>
+        <td>
+          <div class="dt-action-btns">
+            ${r.type === 'deposit' && r.end ? '<button class="btn-icon renew" data-action="renew" data-id="' + r.id + '">🔄</button>' : ''}
+            <button class="btn-icon edit"  data-action="edit" data-id="${r.id}">✏️</button>
+            <button class="btn-icon del"   data-action="delete" data-id="${r.id}">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 事件委托绑定操作按钮（兼容鸿蒙系统）
+  bindActionButtons();
+}
+
+function bindActionButtons() {
+  var btns = document.querySelectorAll('[data-action="renew"],[data-action="edit"],[data-action="delete"]');
+  for (var i = 0; i < btns.length; i++) {
+    (function(btn) {
+      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      btn.onclick = null;
+      if (btn._boundHandler) {
+        btn.removeEventListener('click', btn._boundHandler);
+      }
+      function handler(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // 直接传原始 id（字符串），由各函数内部做类型兼容匹配
+        if (action === 'delete') deleteRecord(id);
+        else if (action === 'edit') editRecord(id);
+        else if (action === 'renew') renewRecord(id);
+        return false;
+      }
+      btn._boundHandler = handler;
+      btn.addEventListener('click', handler, false);
+    })(btns[i]);
+  }
+}
+
+function renderReminders() {
+  const banner = document.getElementById('reminderBanner');
+  const list = document.getElementById('reminderList');
+  const items = records.reduce((acc, r) => {
+    if (!r.end) return acc;
+    const days = getDaysRemaining(r.end);
+    if (days < 0)
+      acc.push(`<li>【${r.inst}】已于 ${fmtDate(r.end)} 到期，利息 ${fmtMoney(calcInterest(r.amount,r.rate,r.start,r.end).interest)}</li>`);
+    else if (days <= 7)
+      acc.push(`<li>【${r.inst}】${days===0?'今天':days+'天后'} (${fmtDate(r.end)}) 到期，${fmtWan(r.amount)}</li>`);
+    return acc;
+  }, []);
+  if (items.length) {
+    list.innerHTML = items.join('');
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ─── Filter ───────────────────────────────────────────────────────────────────
+function filterBy(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// 点击快捷银行标签
+function pickBank(name) {
+  document.getElementById('fInst').value = name;
+  // 高亮选中的标签
+  document.querySelectorAll('.bank-tag').forEach(el => {
+    el.classList.toggle('selected', el.textContent === name);
+  });
+}
+
+// ─── Term → End Date Auto-calc ───────────────────────────────────────────────
+// 将本地日期对象格式化为 YYYY-MM-DD（避免 toISOString 的 UTC 偏差）
+function formatLocalDate(date) {
+  if (!date || !(date instanceof Date)) return '';
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
+function calcEndFromTerm(startStr, term) {
+  if (!startStr || !term) return '';
+  var d = new Date(startStr + 'T00:00:00');
+  if (term.indexOf('m') > 0) {
+    var months = parseInt(term);
+    d.setMonth(d.getMonth() + months);
+  } else if (term.indexOf('y') > 0) {
+    var years = parseInt(term);
+    d.setFullYear(d.getFullYear() + years);
+  }
+  return formatLocalDate(d);
+}
+
+// 反推：从存入和到期日期猜期限（用于编辑时回填期限下拉框）
+function guessTermFromDates(startStr, endStr) {
+  if (!startStr || !endStr) return '';
+  var terms = ['3m','6m','1y','2y','3y','5y'];
+  for (var i = 0; i < terms.length; i++) {
+    if (calcEndFromTerm(startStr, terms[i]) === endStr) return terms[i];
+  }
+  return '';
+}
+
+// 类型变更时显示/隐藏月收益字段
+function onTypeChange() {
+  var typeEl = document.getElementById('fType');
+  var monthlyGroup = document.getElementById('monthlyIncomeGroup');
+  var termGroup = document.getElementById('termGroup');
+  var endGroup = document.getElementById('endGroup');
+  var endRequired = document.getElementById('endRequired');
+  var type = typeEl ? typeEl.value : 'deposit';
+  var noEnd = (type === 'current' || type === 'wealth');
+
+  if (monthlyGroup) {
+    monthlyGroup.style.display = (type === 'wealth') ? 'block' : 'none';
+  }
+  // 活期存款和理财产品不需要到期日期和期限
+  if (termGroup) termGroup.style.display = noEnd ? 'none' : '';
+  if (endGroup) endGroup.style.display = noEnd ? 'none' : '';
+  if (endRequired) endRequired.style.display = noEnd ? 'none' : '';
+}
+
+// 从月收益自动计算年利率
+function calcRateFromMonthly() {
+  var amountWan = parseFloat(document.getElementById('fAmount').value);
+  var monthlyIncome = parseFloat(document.getElementById('fMonthlyIncome').value);
+  var rateEl = document.getElementById('fRate');
+  
+  if (amountWan && monthlyIncome && rateEl) {
+    var amount = amountWan * 10000; // 转换为元
+    // 年利率 = (月收益 × 12) / 本金 × 100
+    var annualRate = (monthlyIncome * 12) / amount * 100;
+    rateEl.value = annualRate.toFixed(2);
+    scheduleCalcPreview();
+  }
+}
+
+// 从到期日期和期限反推存入日期
+function calcStartFromTerm(endStr, term) {
+  if (!endStr || !term) return '';
+  var d = new Date(endStr + 'T00:00:00');
+  if (term.indexOf('m') > 0) {
+    var months = parseInt(term);
+    d.setMonth(d.getMonth() - months);
+  } else if (term.indexOf('y') > 0) {
+    var years = parseInt(term);
+    d.setFullYear(d.getFullYear() - years);
+  }
+  return formatLocalDate(d);
+}
+
+function onTermChange() {
+  var termEl = document.getElementById('fTerm');
+  var startEl = document.getElementById('fStart');
+  var endEl = document.getElementById('fEnd');
+  
+  var term = termEl ? termEl.value : '';
+  var start = startEl ? startEl.value : '';
+  var end = endEl ? endEl.value : '';
+  
+  if (!term) return;
+  
+  // 优先根据存入日期计算到期日期
+  if (start) {
+    if (endEl) endEl.value = calcEndFromTerm(start, term);
+    scheduleCalcPreview();
+  }
+  // 如果没有存入日期但有到期日期，则反推存入日期
+  else if (end) {
+    if (startEl) startEl.value = calcStartFromTerm(end, term);
+    scheduleCalcPreview();
+  }
+}
+
+// 用户手动修改到期日期时，如果已选期限且有到期日期，则反推存入日期
+function onEndManualEdit() {
+  var termEl = document.getElementById('fTerm');
+  var startEl = document.getElementById('fStart');
+  var endEl = document.getElementById('fEnd');
+  
+  var term = termEl ? termEl.value : '';
+  var end = endEl ? endEl.value : '';
+  
+  // 如果已选期限、有到期日期，则反推存入日期
+  if (term && end) {
+    var calcStart = calcStartFromTerm(end, term);
+    if (calcStart && startEl) {
+      startEl.value = calcStart;
+    }
+  }
+  scheduleCalcPreview();
+}
+
+// 用户手动修改存入日期时，如果已选期限，则重新计算到期日期
+function onStartManualEdit() {
+  var termEl = document.getElementById('fTerm');
+  var startEl = document.getElementById('fStart');
+  var endEl = document.getElementById('fEnd');
+  
+  var term = termEl ? termEl.value : '';
+  var start = startEl ? startEl.value : '';
+  
+  if (term && start && endEl) {
+    endEl.value = calcEndFromTerm(start, term);
+  }
+  scheduleCalcPreview();
+}
+
+// ─── Form Sheet ───────────────────────────────────────────────────────────────
+let calcTimer = null;
+
+function openForm(id) {
+  editingId = id || null;
+  
+  // 安全获取元素
+  var formTitle = document.getElementById('formTitle');
+  var fInst = document.getElementById('fInst');
+  var fType = document.getElementById('fType');
+  var fRate = document.getElementById('fRate');
+  var fAmount = document.getElementById('fAmount');
+  var fStart = document.getElementById('fStart');
+  var fTerm = document.getElementById('fTerm');
+  var fEnd = document.getElementById('fEnd');
+  var fNote = document.getElementById('fNote');
+  var calcPreviewEl = document.getElementById('calcPreviewEl');
+  var formOverlay = document.getElementById('formOverlay');
+  
+  if (formTitle) formTitle.textContent = id ? '编辑记录' : '添加存款/理财';
+  if (fInst) fInst.value = '';
+  if (fType) fType.value = 'deposit';
+  if (fRate) fRate.value = '';
+  if (fAmount) fAmount.value = '';
+  if (fStart) fStart.value = '';
+  if (fTerm) fTerm.value = '';
+  if (fEnd) fEnd.value = '';
+  if (fNote) fNote.value = '';
+  if (document.getElementById('fMonthlyIncome')) document.getElementById('fMonthlyIncome').value = '';
+  if (calcPreviewEl) calcPreviewEl.innerHTML = '填写金额、利率和日期后，自动计算利息';
+  
+  var bankTags = document.querySelectorAll('.bank-tag');
+  for (var i = 0; i < bankTags.length; i++) {
+    bankTags[i].classList.remove('selected');
+  }
+  
+  onTypeChange(); // 根据类型显示/隐藏月收益字段
+
+  if (id) {
+    var r = null;
+    for (var j = 0; j < records.length; j++) {
+      if (records[j].id === id || records[j].id == id) {
+        r = records[j];
+        break;
+      }
+    }
+    if (r) {
+      if (fInst) fInst.value = r.inst;
+      if (fType) fType.value = r.type;
+      onTypeChange(); // 根据编辑记录的类型显示/隐藏月收益字段
+      if (fRate) fRate.value = r.rate;
+      // 元转万元显示
+      if (fAmount) fAmount.value = (r.amount / 10000).toFixed(4).replace(/\.?0+$/, '');
+      if (fStart) fStart.value = r.start;
+      // 尝试反推存款期限
+      if (fTerm) fTerm.value = guessTermFromDates(r.start, r.end);
+      if (fEnd) fEnd.value = r.end;
+      if (fNote) fNote.value = r.note || '';
+      // 高亮匹配的银行标签
+      for (var k = 0; k < bankTags.length; k++) {
+        if (bankTags[k].textContent === r.inst) {
+          bankTags[k].classList.add('selected');
+        }
+      }
+      calcPreview();
+    }
+  }
+  
+  // 显示底部抽屉 - 鸿蒙系统兼容
+  var formSheet = document.getElementById('formSheet');
+  if (formOverlay) {
+    formOverlay.style.display = 'block';
+    setTimeout(function() { formOverlay.classList.add('show'); }, 10);
+  }
+  if (formSheet) {
+    formSheet.style.display = 'flex';
+    setTimeout(function() { formSheet.classList.add('show'); }, 10);
+  }
+}
+
+function closeForm() {
+  var formOverlay = document.getElementById('formOverlay');
+  var formSheet = document.getElementById('formSheet');
+  if (formSheet) {
+    formSheet.classList.remove('show');
+    setTimeout(function() { formSheet.style.display = 'none'; }, 250);
+  }
+  if (formOverlay) {
+    formOverlay.classList.remove('show');
+    setTimeout(function() { formOverlay.style.display = 'none'; }, 250);
+  }
+  editingId = null;
+}
+
+// ─── Maturity Modal ───────────────────────────────────────────────────────────
+function openMaturityModal() {
+  var modal = document.getElementById('maturityModal');
+  var overlay = document.getElementById('maturityModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(function() { modal.classList.add('show'); }, 10);
+  }
+  if (overlay) {
+    overlay.style.display = 'block';
+    setTimeout(function() { overlay.classList.add('show'); }, 10);
+  }
+  renderMaturityRecords();
+}
+
+function closeMaturityModal() {
+  var modal = document.getElementById('maturityModal');
+  var overlay = document.getElementById('maturityModalOverlay');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 250);
+  }
+  if (overlay) {
+    overlay.classList.remove('show');
+    setTimeout(function() { overlay.style.display = 'none'; }, 250);
+  }
+}
+
+// ========== Data Management ==========
+function openDataModal() {
+  var modal = document.getElementById('dataModal');
+  var overlay = document.getElementById('dataModalOverlay');
+  if (modal) {
+    modal.style.display = 'block';
+    setTimeout(function() { modal.classList.add('show'); }, 10);
+  }
+  if (overlay) {
+    overlay.style.display = 'block';
+    setTimeout(function() { overlay.classList.add('show'); }, 10);
+  }
+  updateBackupUI(); // 打开时更新备份状态显示
+}
+
+function closeDataModal() {
+  var modal = document.getElementById('dataModal');
+  var overlay = document.getElementById('dataModalOverlay');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 250);
+  }
+  if (overlay) {
+    overlay.classList.remove('show');
+    setTimeout(function() { overlay.style.display = 'none'; }, 250);
+  }
+}
+
+function exportData() {
+  try {
+    var data = {
+      version: 2,
+      exportTime: new Date().toISOString(),
+      records: records
+    };
+    var jsonStr = JSON.stringify(data, null, 2);
+    var now = new Date();
+    var dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    var filename = '蒙蒙理财数据_' + dateStr + '.json';
+
+    // 优先走原生桥接（鸿蒙 App 内 WebView），无需判断 UA
+    if (window.HarmonyBridge && typeof window.HarmonyBridge.saveFile === 'function') {
+      window.HarmonyBridge.saveFile(filename, jsonStr).then(function(result) {
+        if (result === 'CANCELLED') {
+          showToast('已取消保存', 'warning');
+        } else if (result && result.indexOf('SUCCESS:') === 0) {
+          var path = result.replace('SUCCESS:', '');
+          showToast('✓ 已保存到：' + path, 'success', 5000);
+        } else if (result && result.indexOf('ERROR:') === 0) {
+          var errMsg = result.replace('ERROR:', '');
+          showToast('✗ 保存失败：' + errMsg, 'error');
+        } else {
+          showToast('✓ 导出完成', 'success');
+        }
+        closeDataModal();
+      }).catch(function(err) {
+        showToast('✗ 保存出错：' + (err.message || err), 'error');
+        closeDataModal();
+      });
+      return;
+    }
+
+    // 普通浏览器 / 非 App 环境：标准 <a download> 下载
+    var ua = navigator.userAgent || '';
+    var isHarmony = /HarmonyOS|hmos/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var isMobile = isHarmony || isIOS || /Android/i.test(ua);
+
+    // 统一使用 Blob URL + a.download（HarmonyOS WebView 支持此方式）
+    var blob = new Blob([jsonStr], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    var pathTip = isMobile ? '文件已保存到「下载」文件夹' : '文件已保存到浏览器下载目录';
+    showToast('✓ 导出成功：' + filename + '，' + pathTip, 'success', 4000);
+    closeDataModal();
+  } catch (e) {
+    showToast('✗ 导出失败：' + e.message, 'error');
+  }
+}
+
+// 鸿蒙浏览器降级：Data URI 方式打开，用户可长按保存
+function harmonyDataUriOpen(jsonStr, filename) {
+  try {
+    // Base64 Data URI，避免 encodeURIComponent 超长 URL 被浏览器截断
+    var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    var dataUri = 'data:application/json;base64,' + b64;
+    var a = document.createElement('a');
+    a.href = dataUri;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('✓ 导出成功，请在「下载」文件夹查看', 'success', 5000);
+  } catch (e) {
+    // 终极兜底：复制到剪贴板
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(jsonStr).then(function() {
+        showToast('✓ 数据已复制到剪贴板，请粘贴到记事本保存', 'success', 8000);
+      }).catch(function() {
+        showToast('✗ 导出受限，请允许弹窗后重试', 'error', 5000);
+      });
+    } else {
+      showToast('✗ 导出失败：' + e.message, 'error');
+    }
+  }
+}
+
+function handleImportFile(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var content = e.target.result;
+      // 尝试解析JSON
+      var data;
+      try {
+        data = JSON.parse(content);
+      } catch (parseErr) {
+        showToast('✗ JSON格式错误：' + parseErr.message, 'error');
+        return;
+      }
+      
+      // 支持直接是数组的格式
+      var recordsToImport = [];
+      if (Array.isArray(data)) {
+        recordsToImport = data;
+      } else if (data.records && Array.isArray(data.records)) {
+        recordsToImport = data.records;
+      } else {
+        showToast('✗ 文件格式不正确：未找到记录数组', 'error');
+        return;
+      }
+      
+      if (recordsToImport.length === 0) {
+        showToast('⚠️ 文件中没有记录', 'warning');
+        return;
+      }
+      
+      var importedCount = 0;
+      var duplicateCount = 0;
+      var invalidCount = 0;
+      
+      recordsToImport.forEach(function(record) {
+        // 验证必要字段
+        if (!record || typeof record !== 'object') {
+          invalidCount++;
+          return;
+        }
+        
+        // 确保必要字段存在（活期和理财产品不需要end）
+        if (!record.inst || !record.amount || !record.start) {
+          invalidCount++;
+          return;
+        }
+        
+        // 检查是否已存在（根据关键字段判断）
+        var exists = records.some(function(r) {
+          return r.inst === record.inst && 
+                 r.amount === record.amount && 
+                 r.start === record.start && 
+                 r.end === record.end;
+        });
+        
+        if (!exists) {
+          // 确保记录有id
+          if (!record.id) {
+            record.id = Date.now() + Math.random().toString(36).substr(2, 9);
+          }
+          records.push(record);
+          importedCount++;
+        } else {
+          duplicateCount++;
+        }
+      });
+      
+      // 保存数据
+      saveData();
+      
+      // 刷新页面显示（用 try-catch 防止渲染异常导致导入流程中断）
+      try { renderAll(); } catch(renderErr) {
+        console.error('导入后渲染出错:', renderErr);
+      }
+      
+      var msg = '导入完成：新增' + importedCount + '条';
+      if (duplicateCount > 0) msg += '，跳过重复' + duplicateCount + '条';
+      if (invalidCount > 0) msg += '，无效' + invalidCount + '条';
+      
+      showToast(importedCount > 0 ? '✓ ' + msg : '⚠️ ' + msg, importedCount > 0 ? 'success' : 'warning');
+      closeDataModal();
+    } catch (err) {
+      console.error('导入出错详情:', err);
+      showToast('✗ 导入失败：' + err.message + ' (行' + (err.lineNumber||'?') + ')', 'error');
+    }
+  };
+  reader.onerror = function() {
+    showToast('✗ 文件读取失败', 'error');
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // 清空input，允许重复导入同一文件
+}
+
+// ========== Auto Backup ==========
+var AUTO_BACKUP_KEY = 'mengmeng_auto_backup';
+var autoBackupTimer = null;
+
+function initAutoBackup() {
+  try {
+    checkStorage();
+    if (!storageAvailable) {
+      updateBackupUI();
+      return;
+    }
+    var setting = localStorage.getItem(AUTO_BACKUP_KEY);
+    if (setting) {
+      var days = parseInt(setting, 10);
+      if (days > 0) {
+        startAutoBackup(days);
+      }
+    }
+  } catch (e) {
+    console.warn('initAutoBackup 出错:', e);
+  }
+  updateBackupUI();
+}
+
+// ========== Share Target (接收分享的文件) ==========
+function initShareTarget() {
+  // 检查是否是通过分享接收的文件
+  if (window.location.search.includes('share-target')) {
+    // 延迟执行，等待页面完全加载
+    setTimeout(function() {
+      handleSharedFile();
+    }, 500);
+  }
+}
+
+function handleSharedFile() {
+  // 尝试从 navigator.share 接收的文件
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      if (reg && reg.active) {
+        // 通知用户可以通过导入功能手动导入
+        showToast('📁 请使用「数据管理」中的「导入数据」功能导入备份文件', 'success', 5000);
+        // 自动打开数据管理弹窗
+        setTimeout(function() {
+          openDataModal();
+        }, 1000);
+      }
+    });
+  }
+}
+
+function setAutoBackup(days) {
+  // 保存设置
+  localStorage.setItem(AUTO_BACKUP_KEY, days.toString());
+  
+  // 停止现有定时器
+  if (autoBackupTimer) {
+    clearInterval(autoBackupTimer);
+    autoBackupTimer = null;
+  }
+  
+  // 启动新定时器
+  if (days > 0) {
+    startAutoBackup(days);
+    showToast('✓ 已设置每' + (days === 1 ? '天' : days + '天') + '自动备份', 'success');
+  } else {
+    showToast('✓ 已关闭自动备份', 'success');
+  }
+  
+  updateBackupUI();
+}
+
+function startAutoBackup(days) {
+  // 检查是否需要立即备份（上次备份时间）
+  var lastBackupKey = 'mengmeng_last_backup';
+  var lastBackup = localStorage.getItem(lastBackupKey);
+  var now = Date.now();
+  var intervalMs = days * 24 * 60 * 60 * 1000;
+  
+  // 如果从未备份或已过期，立即执行一次备份
+  if (!lastBackup || (now - parseInt(lastBackup, 10)) > intervalMs) {
+    performAutoBackup();
+  }
+  
+  // 设置定时检查（每小时检查一次）
+  autoBackupTimer = setInterval(function() {
+    var last = localStorage.getItem(lastBackupKey);
+    var current = Date.now();
+    if (!last || (current - parseInt(last, 10)) > intervalMs) {
+      performAutoBackup();
+    }
+  }, 60 * 60 * 1000); // 每小时检查一次
+}
+
+function performAutoBackup() {
+  try {
+    var data = {
+      version: 2,
+      exportTime: new Date().toISOString(),
+      records: records
+    };
+    var jsonStr = JSON.stringify(data, null, 2);
+    var now = new Date();
+    var dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    var filename = '蒙蒙理财自动备份_' + dateStr + '.json';
+
+    // 鸿蒙系统：a.click() 不会真正保存文件，改用 share / data URI
+    var ua = navigator.userAgent || '';
+    var isHarmony = /HarmonyOS|hmos/i.test(ua);
+    if (isHarmony) {
+      var blob = new Blob([jsonStr], { type: 'application/json' });
+      if (navigator.share && navigator.canShare) {
+        var shareFile = new File([blob], filename, { type: 'application/json' });
+        if (navigator.canShare({ files: [shareFile] })) {
+          navigator.share({ files: [shareFile], title: filename })
+            .then(function() {
+              localStorage.setItem('mengmeng_last_backup', Date.now().toString());
+              showToast('📦 请选择「保存到文件」完成自动备份', 'success', 5000);
+            })
+            .catch(function(err) {
+              if (err.name !== 'AbortError') {
+                harmonyDataUriOpen(jsonStr, filename);
+                localStorage.setItem('mengmeng_last_backup', Date.now().toString());
+              }
+            });
+          return;
+        }
+      }
+      harmonyDataUriOpen(jsonStr, filename);
+    } else {
+      var blob2 = new Blob([jsonStr], { type: 'application/json' });
+      var url = URL.createObjectURL(blob2);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('📦 自动备份已保存', 'success');
+    }
+    // 记录备份时间
+    localStorage.setItem('mengmeng_last_backup', Date.now().toString());
+  } catch (e) {
+    console.error('自动备份失败:', e);
+  }
+}
+
+function updateBackupUI() {
+  var setting = localStorage.getItem(AUTO_BACKUP_KEY) || '0';
+  var days = parseInt(setting, 10);
+  
+  // 更新按钮状态
+  document.querySelectorAll('[data-backup]').forEach(function(btn) {
+    var btnDays = parseInt(btn.getAttribute('data-backup'), 10);
+    if (btnDays === days) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // 更新状态文字
+  var statusEl = document.getElementById('autoBackupStatus');
+  if (statusEl) {
+    if (days === 0) {
+      statusEl.textContent = '自动备份已关闭';
+    } else {
+      var lastBackup = localStorage.getItem('mengmeng_last_backup');
+      if (lastBackup) {
+        var lastDate = new Date(parseInt(lastBackup, 10));
+        var dateStr = lastDate.getFullYear() + '-' + String(lastDate.getMonth()+1).padStart(2,'0') + '-' + String(lastDate.getDate()).padStart(2,'0');
+        statusEl.textContent = '每' + (days === 1 ? '天' : days + '天') + '自动备份 | 上次备份：' + dateStr;
+      } else {
+        statusEl.textContent = '每' + (days === 1 ? '天' : days + '天') + '自动备份 | 下次打开页面时执行首次备份';
+      }
+    }
+  }
+}
+
+// 到期时间选择（弹窗版）
+function filterMaturityBy(type, el) {
+  var container = document.getElementById('maturityRecords');
+  if (!container) return;
+  
+  // 更新选中状态
+  var items = document.querySelectorAll('#maturityGrid .maturity-item');
+  items.forEach(function(item) { item.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  
+  var now = new Date();
+  var year = now.getFullYear();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var targetDate = new Date(today);
+
+  var startDate, endDate;
+
+  if (type === '6m') {
+    targetDate.setMonth(targetDate.getMonth() + 6);
+  } else if (type === '1y') {
+    // 今年
+    startDate = new Date(year, 0, 1);
+    endDate = new Date(year, 11, 31);
+  } else if (type === '2y') {
+    // 明年
+    startDate = new Date(year + 1, 0, 1);
+    endDate = new Date(year + 1, 11, 31);
+  } else if (type === '3y') {
+    // 后年
+    startDate = new Date(year + 2, 0, 1);
+    endDate = new Date(year + 2, 11, 31);
+  }
+
+  var filtered = records.filter(function(r) {
+    if (!r.end) return false;
+    var ed = new Date(r.end + 'T00:00:00');
+    if (type === '6m') {
+      return ed >= today && ed <= targetDate;
+    } else {
+      return ed >= startDate && ed <= endDate;
+    }
+  }).sort(function(a, b) {
+    return new Date(a.end) - new Date(b.end);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">该时间段暂无到期记录</div>';
+    return;
+  }
+
+  var typeLabel = type === '6m' ? '半年内' : type === '1y' ? '今年内' : type === '2y' ? '明年内' : '后年内';
+  var html = '<div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">' + typeLabel + '到期明细</div>';
+  for (var i = 0; i < filtered.length; i++) {
+    var r = filtered[i];
+    var days = getDaysRemaining(r.end);
+    var daysText = days === 0 ? '今天到期' : days + '天后到期';
+
+    html += '<div class="maturity-record-item">' +
+      '<div class="maturity-record-left">' +
+        '<span class="maturity-record-inst">' + r.inst + '</span>' +
+        '<span class="maturity-record-date">' + fmtDate(r.end) + '</span>' +
+      '</div>' +
+      '<div class="maturity-record-right">' +
+        '<span class="maturity-record-amount">' + fmtWan(r.amount) + '</span>' +
+        '<span class="maturity-record-days">' + daysText + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// 到期时间选择（页面版）
+function filterPageMaturityBy(type, el) {
+  var container = document.getElementById('pageMaturityList');
+  if (!container) return;
+  
+  // 更新选中状态
+  var items = document.querySelectorAll('.maturity-sum-item');
+  items.forEach(function(item) { item.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  
+  var now = new Date();
+  var year = now.getFullYear();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var targetDate = new Date(today);
+
+  var startDate, endDate;
+
+  if (type === '6m') {
+    targetDate.setMonth(targetDate.getMonth() + 6);
+  } else if (type === '1y') {
+    // 今年
+    startDate = new Date(year, 0, 1);
+    endDate = new Date(year, 11, 31);
+  } else if (type === '2y') {
+    // 明年
+    startDate = new Date(year + 1, 0, 1);
+    endDate = new Date(year + 1, 11, 31);
+  } else if (type === '3y') {
+    // 后年
+    startDate = new Date(year + 2, 0, 1);
+    endDate = new Date(year + 2, 11, 31);
+  }
+
+  var filtered = records.filter(function(r) {
+    if (!r.end) return false;
+    var ed = new Date(r.end + 'T00:00:00');
+    if (type === '6m') {
+      return ed >= today && ed <= targetDate;
+    } else {
+      return ed >= startDate && ed <= endDate;
+    }
+  }).sort(function(a, b) {
+    return new Date(a.end) - new Date(b.end);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:16px">该时间段暂无到期记录</div>';
+    return;
+  }
+
+  var typeLabel = type === '6m' ? '半年内' : type === '1y' ? '今年内' : type === '2y' ? '明年内' : '后年内';
+  var html = '<div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">' + typeLabel + '到期明细</div>';
+  for (var i = 0; i < filtered.length; i++) {
+    var r = filtered[i];
+    var days = getDaysRemaining(r.end);
+    var daysText = days === 0 ? '今天到期' : days + '天后到期';
+
+    html += '<div class="maturity-record-item">' +
+      '<div class="maturity-record-left">' +
+        '<span class="maturity-record-inst">' + r.inst + '</span>' +
+        '<span class="maturity-record-date">' + fmtDate(r.end) + '</span>' +
+      '</div>' +
+      '<div class="maturity-record-right">' +
+        '<span class="maturity-record-amount">' + fmtWan(r.amount) + '</span>' +
+        '<span class="maturity-record-days">' + daysText + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+function renderMaturityRecords() {
+  var container = document.getElementById('maturityRecords');
+  if (!container) return;
+  
+  var now = new Date();
+  var year = now.getFullYear();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var sixMonthsLater = new Date(today); sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  
+  // 计算各时间段金额
+  var maturity6m = 0, maturity1y = 0, maturity2y = 0, maturity3y = 0;
+  
+  // 收集未来3年内到期的记录（仅定期存款有到期日）
+  var maturityRecs = records.filter(function(r) {
+    if (!r.end) return false;
+    var endDate = new Date(r.end + 'T00:00:00');
+    var endYear = endDate.getFullYear();
+    var isInRange = endYear >= year && endYear <= year + 2 && endDate >= today;
+    if (isInRange) {
+      if (endYear === year && endDate >= today && endDate <= sixMonthsLater) maturity6m += r.amount;
+      if (endYear === year && endDate >= today) maturity1y += r.amount;
+      if (endYear === year + 1) maturity2y += r.amount;
+      if (endYear === year + 2) maturity3y += r.amount;
+    }
+    return isInRange;
+  }).sort(function(a, b) {
+    return new Date(a.end) - new Date(b.end);
+  });
+  
+  // 更新弹窗内的汇总数据
+  var m6El = document.getElementById('modalMaturity6m');
+  var m1El = document.getElementById('modalMaturity1y');
+  var m2El = document.getElementById('modalMaturity2y');
+  var m3El = document.getElementById('modalMaturity3y');
+  if (m6El) m6El.textContent = fmtWan(maturity6m);
+  if (m1El) m1El.textContent = fmtWan(maturity1y);
+  if (m2El) m2El.textContent = fmtWan(maturity2y);
+  if (m3El) m3El.textContent = fmtWan(maturity3y);
+  
+  if (maturityRecs.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">暂无到期记录</div>';
+    return;
+  }
+  
+  var html = '<div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)">到期明细</div>';
+  for (var i = 0; i < maturityRecs.length; i++) {
+    var r = maturityRecs[i];
+    var days = getDaysRemaining(r.end);
+    var daysText = days === 0 ? '今天到期' : days + '天后到期';
+    var endDate = new Date(r.end + 'T00:00:00');
+    var endYear = endDate.getFullYear();
+    var yearLabel = endYear === year ? '今年' : endYear === year + 1 ? '明年' : '后年';
+    
+    html += '<div class="maturity-record-item">' +
+      '<div class="maturity-record-left">' +
+        '<span class="maturity-record-inst">' + r.inst + '</span>' +
+        '<span class="maturity-record-date">' + yearLabel + ' · ' + fmtDate(r.end) + '</span>' +
+      '</div>' +
+      '<div class="maturity-record-right">' +
+        '<span class="maturity-record-amount">' + fmtWan(r.amount) + '</span>' +
+        '<span class="maturity-record-days">' + daysText + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+// Debounced preview
+function scheduleCalcPreview() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(calcPreview, 300);
+}
+
+function calcPreview() {
+  const amountWan = parseFloat(document.getElementById('fAmount').value);
+  const rate   = parseFloat(document.getElementById('fRate').value);
+  const start  = document.getElementById('fStart').value;
+  const end    = document.getElementById('fEnd').value;
+  const el = document.getElementById('calcPreviewEl');
+  var typeEl = document.getElementById('fType');
+  var type = typeEl ? typeEl.value : 'deposit';
+  var noEnd = (type === 'current' || type === 'wealth');
+
+  if (!amountWan || !rate || !start || (!end && !noEnd)) {
+    el.innerHTML = '填写金额、利率和日期后，自动计算利息';
+    return;
+  }
+  // 万元转元计算
+  const amount = amountWan * 10000;
+  const c = calcInterest(amount, rate, start, end);
+  if (!noEnd && c.days <= 0) { el.innerHTML = '⚠️ 到期日期需晚于存入日期'; return; }
+  if (noEnd) {
+    el.innerHTML = '📊 存入至今 <strong>' + c.days + '</strong> 天 ｜ 累计收益 <strong>' + fmtMoney(c.interest) + '</strong> ｜ 每日收益 <strong>' + fmtMoney(c.daily) + '</strong>';
+  } else {
+    el.innerHTML = '📊 存期 <strong>' + c.days + '</strong> 天 ｜ 预计利息 <strong>' + fmtMoney(c.interest) + '</strong> ｜ 每日收益 <strong>' + fmtMoney(c.daily) + '</strong>';
+  }
+}
+
+// Bind form input events - 使用传统函数语法提高兼容性
+['fRate','fAmount','fEnd'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('input', scheduleCalcPreview);
+    el.addEventListener('change', scheduleCalcPreview);
+  }
+});
+// 存入日期变化时：若选了期限则重算到期日期，否则只刷新预览
+// 注意：fStart的input事件已绑定onStartManualEdit，这里只绑定change事件
+var fStartChangeEl = document.getElementById('fStart');
+if (fStartChangeEl) {
+  fStartChangeEl.addEventListener('change', function() {
+    var term = document.getElementById('fTerm').value;
+    if (term) {
+      onTermChange();
+    } else {
+      scheduleCalcPreview();
+    }
+  });
+}
+
+// ─── CRUD ─────────────────────────────────────────────────────────────────────
+function saveRecord() {
+  try {
+    var instEl = document.getElementById('fInst');
+    var typeEl = document.getElementById('fType');
+    var rateEl = document.getElementById('fRate');
+    var amountEl = document.getElementById('fAmount');
+    var startEl = document.getElementById('fStart');
+    var endEl = document.getElementById('fEnd');
+    var noteEl = document.getElementById('fNote');
+    
+    var inst = instEl ? instEl.value.trim() : '';
+    var type = typeEl ? typeEl.value : 'deposit';
+    var rate = rateEl ? parseFloat(rateEl.value) : 0;
+    var amountWan = amountEl ? parseFloat(amountEl.value) : 0;
+    var start = startEl ? startEl.value : '';
+    var end = endEl ? endEl.value : '';
+    var note = noteEl ? noteEl.value.trim() : '';
+
+    if (!inst) { showToast('请填写存款机构名称', 'error'); return; }
+    if (!rate || rate <= 0) { showToast('请填写有效的年利率', 'error'); return; }
+    if (!amountWan || amountWan <= 0) { showToast('请填写有效的存入金额', 'error'); return; }
+    if (!start) { showToast('请填写存入日期', 'error'); return; }
+    // 活期存款和理财产品不需要到期日期
+    if (type === 'deposit') {
+      if (!end) { showToast('请填写到期日期', 'error'); return; }
+      if (end <= start) { showToast('到期日期需晚于存入日期', 'error'); return; }
+    }
+
+    // 万元转元存储
+    var amount = Math.round(amountWan * 10000);
+
+    if (editingId) {
+      var idx = -1;
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].id === editingId || records[i].id == editingId) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx >= 0) {
+        records[idx] = { 
+          id: records[idx].id, 
+          inst: inst, 
+          type: type, 
+          rate: rate, 
+          amount: amount, 
+          start: start, 
+          end: end, 
+          note: note 
+        };
+      }
+      showToast('记录已更新 ✓', 'success');
+    } else {
+      records.push({ id: Date.now(), inst: inst, type: type, rate: rate, amount: amount, start: start, end: end, note: note });
+      showToast('已成功添加 ✓', 'success');
+    }
+    
+    // 先保存数据，再关闭表单，最后渲染
+    saveData();
+    closeForm();
+    renderAll();
+    
+    console.log('保存完成，当前记录数:', records.length);
+  } catch (e) {
+    console.error('保存失败:', e);
+    showToast('保存失败', 'error');
+  }
+}
+
+// 调试：暴露到全局以便浏览器控制台测试
+window.debugSave = saveRecord;
+
+function editRecord(id) {
+  // 确保 id 类型匹配（处理字符串和数字混合的情况）
+  var found = false;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === id || records[i].id == id) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    showToast('未找到记录', 'error');
+    return;
+  }
+  openForm(id);
+}
+
+var pendingDeleteId = null;
+
+function deleteRecord(id) {
+  var r = null;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === id || records[i].id == id) { r = records[i]; break; }
+  }
+  if (!r) { showToast('未找到记录', 'error'); return; }
+  pendingDeleteId = id;
+  document.getElementById('deleteMsg').textContent = '确定删除「' + r.inst + '」？';
+  var overlay = document.getElementById('deleteOverlay');
+  var box = document.getElementById('deleteConfirm');
+  overlay.style.display = 'block';
+  box.style.display = 'block';
+  setTimeout(function() { overlay.classList.add('show'); box.classList.add('show'); }, 10);
+}
+
+function cancelDelete() {
+  pendingDeleteId = null;
+  var overlay = document.getElementById('deleteOverlay');
+  var box = document.getElementById('deleteConfirm');
+  box.classList.remove('show');
+  overlay.classList.remove('show');
+  setTimeout(function() { box.style.display = 'none'; overlay.style.display = 'none'; }, 200);
+}
+
+function confirmDelete() {
+  if (pendingDeleteId !== null) {
+    records = records.filter(function(x) { return x.id !== pendingDeleteId && x.id != pendingDeleteId; });
+    saveData(); renderAll();
+    showToast('已删除', 'warning');
+  }
+  pendingDeleteId = null;
+  var overlay = document.getElementById('deleteOverlay');
+  var box = document.getElementById('deleteConfirm');
+  box.classList.remove('show');
+  overlay.classList.remove('show');
+  setTimeout(function() { box.style.display = 'none'; overlay.style.display = 'none'; }, 200);
+}
+
+var pendingRenewId = null;
+
+function renewRecord(id) {
+  var r = null;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id === id || records[i].id == id) { r = records[i]; break; }
+  }
+  if (!r) { showToast('未找到记录', 'error'); return; }
+  if (r.type !== 'deposit' || !r.end) { showToast('只有定期存款可以续存', 'warning'); return; }
+  pendingRenewId = id;
+  document.getElementById('renewMsg').textContent = '确定续存「' + r.inst + '」？将按当前利率和期限自动续存。';
+  var overlay = document.getElementById('renewOverlay');
+  var box = document.getElementById('renewConfirm');
+  overlay.style.display = 'block';
+  box.style.display = 'block';
+  setTimeout(function() { overlay.classList.add('show'); box.classList.add('show'); }, 10);
+}
+
+function cancelRenew() {
+  pendingRenewId = null;
+  var overlay = document.getElementById('renewOverlay');
+  var box = document.getElementById('renewConfirm');
+  box.classList.remove('show');
+  overlay.classList.remove('show');
+  setTimeout(function() { box.style.display = 'none'; overlay.style.display = 'none'; }, 200);
+}
+
+function confirmRenew() {
+  if (pendingRenewId !== null) {
+    var r = null;
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === pendingRenewId || records[i].id == pendingRenewId) { r = records[i]; break; }
+    }
+    if (r) {
+      var c = calcInterest(r.amount, r.rate, r.start, r.end);
+      var newEnd = new Date(r.end + 'T00:00:00');
+      newEnd.setDate(newEnd.getDate() + c.days);
+      openForm();
+      setTimeout(function() {
+        document.getElementById('fInst').value  = r.inst;
+        document.getElementById('fType').value  = r.type;
+        document.getElementById('fRate').value  = r.rate;
+        document.getElementById('fAmount').value= (r.amount / 10000).toFixed(4).replace(/\.?0+$/, '');
+        document.getElementById('fStart').value = r.end;
+        document.getElementById('fEnd').value   = formatLocalDate(newEnd);
+        document.getElementById('fNote').value  = r.note ? r.note + '（续存）' : '续存';
+        document.getElementById('formTitle').textContent = '续存记录';
+        calcPreview();
+      }, 100);
+    }
+  }
+  pendingRenewId = null;
+  var overlay = document.getElementById('renewOverlay');
+  var box = document.getElementById('renewConfirm');
+  box.classList.remove('show');
+  overlay.classList.remove('show');
+  setTimeout(function() { box.style.display = 'none'; overlay.style.display = 'none'; }, 200);
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function showToast(msg, type = '', duration = 2800) {
+  const icons = { success:'✅', warning:'⚠️', error:'❌', '':'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+// ─── Lock / Auth ──────────────────────────────────────────────────────────────
+let pinBuffer = '', isLocked = false;
+let autoLockTimer = null, lockCountdownTimer = null;
+
+function lockNow() {
+  if (!getStoredHash()) { showToast('请先设置密码', 'warning'); return; }
+  showLockScreen();
+}
+function showLockScreen() {
+  isLocked = true; pinBuffer = '';
+  updateDots();
+  document.getElementById('pinHint').textContent = '';
+  document.getElementById('pinHint').classList.remove('error-text');
+  const hasPin = !!getStoredHash();
+  document.getElementById('lockFooter').innerHTML = hasPin ? '' : '<a onclick="skipLock()">跳过（未设置密码）</a>';
+  document.getElementById('lockSubText').textContent = hasPin ? '请输入 6 位数字密码' : '尚未设置密码';
+  document.getElementById('lockIcon').textContent = hasPin ? '🔒' : '🏦';
+  document.getElementById('lockScreen').classList.add('show');
+  // 防止背景滚动 - 同时锁定 html 和 body
+  document.documentElement.classList.add('lock-open');
+  document.body.classList.add('lock-open');
+  // 记录滚动位置
+  document.body.dataset.scrollY = window.scrollY || window.pageYOffset || 0;
+  clearAutoLockTimer(); clearCountdown();
+}
+function unlock() {
+  isLocked = false;
+  document.getElementById('lockScreen').classList.remove('show');
+  // 恢复背景滚动
+  document.documentElement.classList.remove('lock-open');
+  document.body.classList.remove('lock-open');
+  // 恢复滚动位置
+  var scrollY = document.body.dataset.scrollY || 0;
+  window.scrollTo(0, parseInt(scrollY));
+  renderAll(); resetAutoLockTimer();
+}
+function skipLock() { if (!getStoredHash()) unlock(); }
+
+function numInput(d) {
+  if (pinBuffer.length >= 6) return;
+  pinBuffer += d; 
+  updateDots();
+  if (pinBuffer.length === 6) {
+    // 延迟验证，避免鸿蒙系统页面跳动
+    setTimeout(function() {
+      verifyPin();
+    }, 200);
+  }
+}
+function numDel() {
+  pinBuffer = pinBuffer.slice(0,-1); 
+  updateDots();
+  var hintEl = document.getElementById('pinHint');
+  if (hintEl) {
+    hintEl.textContent = '';
+    hintEl.classList.remove('error-text');
+  }
+}
+function updateDots() {
+  for (let i=0; i<6; i++) {
+    const dot = document.getElementById('dot'+i);
+    dot.classList.toggle('filled', i < pinBuffer.length);
+    dot.classList.remove('error');
+  }
+}
+async function verifyPin() {
+  const stored = getStoredHash();
+  if (!stored) { unlock(); return; }
+  const hash = await hashPin(pinBuffer);
+  if (hash === stored) {
+    document.getElementById('lockIcon').textContent = '✅';
+    document.getElementById('pinHint').textContent = '验证成功！';
+    document.getElementById('pinHint').classList.remove('error-text');
+    setTimeout(unlock, 280);
+  } else {
+    for (let i=0;i<6;i++) {
+      const d=document.getElementById('dot'+i);
+      d.classList.remove('filled'); d.classList.add('error');
+    }
+    document.getElementById('pinHint').textContent = '密码错误，请重试';
+    document.getElementById('pinHint').classList.add('error-text');
+    setTimeout(() => { pinBuffer=''; updateDots(); }, 600);
+  }
+}
+
+// ─── Auto-lock ────────────────────────────────────────────────────────────────
+function resetAutoLockTimer() {
+  clearAutoLockTimer(); clearCountdown();
+  const cfg = loadCfg();
+  const min = parseInt(cfg.autoLockMin ?? 5);
+  if (min <= 0 || !getStoredHash()) return;
+  const ms = min * 60000;
+  let remaining = ms;
+  const el = document.getElementById('lockCountdown');
+  if (el) el.style.display = 'block';
+  lockCountdownTimer = setInterval(() => {
+    remaining -= 1000;
+    if (el) {
+      if (remaining <= 60000) el.textContent = `${Math.ceil(remaining/1000)}s 后锁定`;
+      else el.textContent = `${Math.ceil(remaining/60000)}m 后锁定`;
+    }
+    if (remaining <= 0) { clearCountdown(); lockNow(); }
+  }, 1000);
+  autoLockTimer = setTimeout(() => { clearCountdown(); lockNow(); }, ms);
+}
+function clearAutoLockTimer() {
+  if (autoLockTimer) { clearTimeout(autoLockTimer); autoLockTimer = null; }
+}
+function clearCountdown() {
+  if (lockCountdownTimer) { clearInterval(lockCountdownTimer); lockCountdownTimer = null; }
+  const el = document.getElementById('lockCountdown');
+  if (el) { el.style.display='none'; el.textContent=''; }
+}
+// Activity tracking (no mousemove on mobile)
+var activityThrottle = null;
+function onActivity() {
+  if (isLocked || activityThrottle) return;
+  activityThrottle = setTimeout(function() { activityThrottle = null; resetAutoLockTimer(); }, 5000);
+}
+['click','touchstart','keydown'].forEach(function(ev) {
+  document.addEventListener(ev, onActivity, { passive: true });
+});
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+let pwdSetupStep = 'menu', newPinTemp = '';
+
+function openSettings() {
+  pwdSetupStep = 'menu'; renderSettingsStep();
+  const cfg = loadCfg();
+  const val = String(cfg.autoLockMin ?? 5);
+  var autoLockSelect = document.getElementById('autoLockSelect');
+  if (autoLockSelect) autoLockSelect.value = val;
+  
+  var settingsOverlay = document.getElementById('settingsOverlay');
+  var settingsSheet = document.getElementById('settingsSheet');
+  if (settingsOverlay) {
+    settingsOverlay.style.display = 'block';
+    setTimeout(function() { settingsOverlay.classList.add('show'); }, 10);
+  }
+  if (settingsSheet) {
+    settingsSheet.style.display = 'flex';
+    setTimeout(function() { settingsSheet.classList.add('show'); }, 10);
+  }
+}
+function closeSettings() {
+  // 如果在子界面，返回菜单
+  if (pwdSetupStep === 'reset' || pwdSetupStep === 'verify' || pwdSetupStep === 'new1' || pwdSetupStep === 'new2') {
+    pwdSetupStep = 'menu';
+    renderSettingsStep();
+    return;
+  }
+  
+  var settingsOverlay = document.getElementById('settingsOverlay');
+  var settingsSheet = document.getElementById('settingsSheet');
+  if (settingsSheet) {
+    settingsSheet.classList.remove('show');
+    setTimeout(function() { settingsSheet.style.display = 'none'; }, 250);
+  }
+  if (settingsOverlay) {
+    settingsOverlay.classList.remove('show');
+    setTimeout(function() { settingsOverlay.style.display = 'none'; }, 250);
+  }
+  newPinTemp = ''; pwdSetupStep = 'menu';
+  var btn = document.getElementById('settingsNextBtn');
+  if (btn) btn.style.background = '';
+}
+
+function renderSettingsStep() {
+  ['pwdStepMenu','pwdStep1','pwdStep2','pwdStep3','pwdStepReset'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  const hasPin = !!getStoredHash();
+  const btnRm = document.getElementById('btnRemovePwd');
+  if (btnRm) btnRm.style.display = hasPin ? '' : 'none';
+  const footer = document.getElementById('settingsFooter');
+  const nextBtn = document.getElementById('settingsNextBtn');
+
+  if (pwdSetupStep === 'menu') {
+    document.getElementById('pwdStepMenu').classList.add('active');
+    document.getElementById('settingsTitle').textContent = '设置';
+    footer.style.display = 'none';
+  } else if (pwdSetupStep === 'verify') {
+    document.getElementById('pwdStep3').classList.add('active');
+    document.getElementById('settingsTitle').textContent = '验证当前密码';
+    document.getElementById('verifyPin').value = '';
+    document.getElementById('verifyHint').textContent = '';
+    footer.style.display = 'flex'; nextBtn.textContent = '验证';
+    setTimeout(() => document.getElementById('verifyPin').focus(), 300);
+  } else if (pwdSetupStep === 'new1') {
+    document.getElementById('pwdStep1').classList.add('active');
+    document.getElementById('settingsTitle').textContent = '设置新密码';
+    document.getElementById('newPin1').value = '';
+    footer.style.display = 'flex'; nextBtn.textContent = '下一步';
+    setTimeout(() => document.getElementById('newPin1').focus(), 300);
+  } else if (pwdSetupStep === 'new2') {
+    document.getElementById('pwdStep2').classList.add('active');
+    document.getElementById('settingsTitle').textContent = '确认新密码';
+    document.getElementById('newPin2').value = '';
+    document.getElementById('pinMatchHint').textContent = '';
+    footer.style.display = 'flex'; nextBtn.textContent = '保存';
+    setTimeout(() => document.getElementById('newPin2').focus(), 300);
+  } else if (pwdSetupStep === 'reset') {
+    document.getElementById('pwdStepReset').classList.add('active');
+    document.getElementById('settingsTitle').textContent = '初始化确认';
+    document.getElementById('resetConfirmInput').value = '';
+    document.getElementById('resetHint').textContent = '';
+    footer.style.display = 'flex'; nextBtn.textContent = '确认初始化';
+    nextBtn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
+    setTimeout(() => document.getElementById('resetConfirmInput').focus(), 300);
+  }
+}
+
+function startSetPwd() {
+  pwdSetupStep = getStoredHash() ? 'verify' : 'new1';
+  renderSettingsStep();
+}
+function startResetAll() { pwdSetupStep = 'reset'; renderSettingsStep(); }
+
+async function pwdNext() {
+  if (pwdSetupStep === 'verify') {
+    const pin = document.getElementById('verifyPin').value;
+    if (!/^\d{6}$/.test(pin)) {
+      document.getElementById('verifyHint').innerHTML = '<span style="color:#dc2626">请输入 6 位数字</span>'; return;
+    }
+    const hash = await hashPin(pin);
+    if (hash !== getStoredHash()) {
+      document.getElementById('verifyHint').innerHTML = '<span style="color:#dc2626">密码错误，请重试</span>'; return;
+    }
+    pwdSetupStep = 'new1'; renderSettingsStep();
+
+  } else if (pwdSetupStep === 'new1') {
+    const pin = document.getElementById('newPin1').value;
+    if (!/^\d{6}$/.test(pin)) { showToast('请输入 6 位数字密码','error'); return; }
+    newPinTemp = pin; pwdSetupStep = 'new2'; renderSettingsStep();
+
+  } else if (pwdSetupStep === 'new2') {
+    const pin2 = document.getElementById('newPin2').value;
+    if (pin2 !== newPinTemp) {
+      document.getElementById('pinMatchHint').innerHTML = '<span style="color:#dc2626">两次密码不一致</span>'; return;
+    }
+    setStoredHash(await hashPin(pin2));
+    newPinTemp = ''; closeSettings();
+    showToast('密码已设置 🔐','success'); resetAutoLockTimer();
+
+  } else if (pwdSetupStep === 'reset') {
+    if (document.getElementById('resetConfirmInput').value.trim().toUpperCase() !== 'RESET') {
+      document.getElementById('resetHint').innerHTML = '<span style="color:#dc2626">请输入 "RESET" 以确认</span>'; return;
+    }
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PWD_KEY);
+    localStorage.removeItem(CFG_KEY);
+    // 清空内存存储
+    memoryStorage = []; memoryCfg = {}; memoryPwd = null;
+    records = []; closeSettings(); renderAll();
+    showToast('已初始化，所有数据已清空','success');
+  }
+}
+
+async function removePwd() {
+  if (!getStoredHash()) { showToast('尚未设置密码','warning'); return; }
+  if (!confirm('确定要删除密码保护吗？')) return;
+  removeStoredHash();
+  closeSettings(); showToast('密码已删除','warning');
+  clearAutoLockTimer(); clearCountdown();
+}
+
+function saveAutoLock() {
+  const val = document.getElementById('autoLockSelect').value;
+  const cfg = loadCfg(); cfg.autoLockMin = parseInt(val);
+  saveCfg(cfg); resetAutoLockTimer();
+  showToast(val==='0'?'已关闭自动锁定':`自动锁定：${val} 分钟`,'success');
+}
+
+// ─── Header date ──────────────────────────────────────────────────────────────
+function updateHeaderDate() {
+  const now = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('headerDate').innerHTML =
+    `${now.getMonth()+1}月${now.getDate()}日 周${days[now.getDay()]}<br>` +
+    `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    // 检查存储可用性
+    checkStorage();
+    
+    // 预初始化 IndexedDB（后台进行，不阻塞页面渲染）
+    initIndexedDB().then(function(ready) {
+      if (ready) {
+        console.log('IndexedDB 预初始化成功');
+      } else {
+        console.warn('IndexedDB 预初始化失败，将依赖 localStorage');
+      }
+    });
+    
+    // 加载数据
+    await loadData();
+    console.log('init: 数据加载完成，记录数:', records.length);
+    
+    // 启用自动保存
+    initAutoSave();
+    console.log('init: 自动保存已启用');
+    
+    initAutoBackup();
+    console.log('init: 自动备份已启用');
+    initShareTarget();
+    console.log('init: 分享目标已初始化');
+    updateHeaderDate();
+    setInterval(updateHeaderDate, 30000);
+    
+    // 安全地设置默认值
+    var fStartEl = document.getElementById('fStart');
+    if (fStartEl) fStartEl.value = todayStr();
+    
+    var cfg = loadCfg();
+    var autoLockEl = document.getElementById('autoLockSelect');
+    if (autoLockEl) autoLockEl.value = String(cfg.autoLockMin || 5);
+    
+    // 绑定FAB按钮事件（鸿蒙系统兼容性 - 拖拽 + 点击）
+    var btnAdd = document.getElementById('btnAdd');
+    if (btnAdd) {
+      // ─── FAB 拖拽逻辑 ───
+      var FAB_POS_KEY = 'mengmeng_fab_pos';
+      var fabDragState = {
+        dragging: false,
+        moved: false,
+        startX: 0, startY: 0,
+        startLeft: 0, startBottom: 0,
+        longPressTimer: null
+      };
+      
+      // 恢复上次位置
+      (function restoreFabPos() {
+        try {
+          var pos = localStorage.getItem(FAB_POS_KEY);
+          if (pos) {
+            var p = JSON.parse(pos);
+            if (typeof p.bottom === 'number') btnAdd.style.bottom = p.bottom + 'px';
+            if (p.snap === 'left') {
+              btnAdd.classList.add('snap-left');
+              btnAdd.classList.remove('snap-right');
+            } else {
+              btnAdd.classList.remove('snap-left');
+              btnAdd.classList.add('snap-right');
+            }
+          }
+        } catch(e) {}
+      })();
+      
+      function fabSavePos() {
+        try {
+          var bottom = parseInt(btnAdd.style.bottom) || (80 + (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0));
+          var snap = btnAdd.classList.contains('snap-left') ? 'left' : 'right';
+          localStorage.setItem(FAB_POS_KEY, JSON.stringify({ bottom: bottom, snap: snap }));
+        } catch(e) {}
+      }
+      
+      function fabOnStart(clientX, clientY) {
+        fabDragState.dragging = false;
+        fabDragState.moved = false;
+        fabDragState.startX = clientX;
+        fabDragState.startY = clientY;
+        // 获取当前 bottom 值
+        fabDragState.startBottom = parseInt(btnAdd.style.bottom) || parseInt(getComputedStyle(btnAdd).bottom);
+        // 获取当前 left/right 转换为 X 偏移
+        var rect = btnAdd.getBoundingClientRect();
+        fabDragState.startLeft = rect.left;
+        
+        // 长按 150ms 进入拖拽模式
+        fabDragState.longPressTimer = setTimeout(function() {
+          if (!fabDragState.moved) {
+            fabDragState.dragging = true;
+            btnAdd.classList.add('dragging');
+            btnAdd.classList.remove('not-dragging');
+          }
+        }, 150);
+      }
+      
+      function fabOnMove(clientX, clientY) {
+        var dx = clientX - fabDragState.startX;
+        var dy = clientY - fabDragState.startY;
+        
+        // 移动超过 5px 认为是有意拖拽
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          fabDragState.moved = true;
+        }
+        
+        if (!fabDragState.dragging) return;
+        
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var fbSize = 56;
+        
+        // 限制不超出屏幕
+        var newLeft = Math.max(4, Math.min(vw - fbSize - 4, fabDragState.startLeft + dx));
+        var newBottom = Math.max(4, Math.min(vh - fbSize - 4, fabDragState.startBottom - dy));
+        
+        btnAdd.style.left = newLeft + 'px';
+        btnAdd.style.right = 'auto';
+        btnAdd.style.bottom = newBottom + 'px';
+      }
+      
+      function fabOnEnd() {
+        clearTimeout(fabDragState.longPressTimer);
+        
+        if (fabDragState.dragging) {
+          btnAdd.classList.remove('dragging');
+          btnAdd.classList.add('not-dragging');
+          
+          // 吸附到最近的左/右边缘
+          var vw = window.innerWidth;
+          var rect = btnAdd.getBoundingClientRect();
+          var centerX = rect.left + rect.width / 2;
+          
+          btnAdd.classList.remove('snap-left', 'snap-right');
+          if (centerX < vw / 2) {
+            btnAdd.classList.add('snap-left');
+            btnAdd.style.left = '16px';
+          } else {
+            btnAdd.classList.add('snap-right');
+            btnAdd.style.left = 'auto';
+            btnAdd.style.right = '16px';
+          }
+          
+          fabSavePos();
+          fabDragState.dragging = false;
+        }
+        
+        // 延迟重置 moved 标记（防止 touchend 后 click 误触）
+        setTimeout(function() {
+          fabDragState.moved = false;
+        }, 50);
+      }
+      
+      // Touch 事件
+      btnAdd.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+          fabOnStart(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+      
+      btnAdd.addEventListener('touchmove', function(e) {
+        if (fabDragState.dragging && e.touches.length === 1) {
+          e.preventDefault();
+          fabOnMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+      
+      btnAdd.addEventListener('touchend', function(e) { 
+        fabOnEnd();
+        // 如果发生了拖拽，阻止后续 click 事件
+        if (fabDragState.dragging || fabDragState.moved) {
+          e.preventDefault();
+        }
+      });
+      btnAdd.addEventListener('touchcancel', function() {
+        clearTimeout(fabDragState.longPressTimer);
+        fabDragState.dragging = false;
+      });
+      
+      // Mouse 事件（桌面端测试用）
+      btnAdd.addEventListener('mousedown', function(e) {
+        fabOnStart(e.clientX, e.clientY);
+      });
+      
+      document.addEventListener('mousemove', function(e) {
+        if (fabDragState.dragging) {
+          e.preventDefault();
+          fabOnMove(e.clientX, e.clientY);
+        }
+      });
+      
+      document.addEventListener('mouseup', function() { fabOnEnd(); });
+      
+      // 点击事件（仅未拖拽时触发）
+      btnAdd.addEventListener('click', function(e) {
+        console.log('FAB clicked, moved:', fabDragState.moved, 'dragging:', fabDragState.dragging);
+        if (fabDragState.moved || fabDragState.dragging) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          openForm();
+        } catch(err) {
+          console.error('openForm 出错:', err);
+        }
+        return false;
+      });
+    }
+    
+    // 绑定数字键盘事件（鸿蒙系统兼容性 - 使用 onclick 避免 touch 事件问题）
+    var numBtns = document.querySelectorAll('.num-btn[data-num]');
+    for (var n = 0; n < numBtns.length; n++) {
+      (function(btn) {
+        var num = btn.getAttribute('data-num');
+        // 使用 onclick 属性绑定，鸿蒙系统兼容性最好
+        btn.onclick = function(e) {
+          numInput(num);
+          return false;
+        };
+      })(numBtns[n]);
+    }
+    var delBtn = document.querySelector('.num-btn[data-action="del"]');
+    if (delBtn) {
+      delBtn.onclick = function(e) {
+        numDel();
+        return false;
+      };
+    }
+    
+    if (getStoredHash()) {
+      showLockScreen();
+    } else {
+      renderAll();
+      resetAutoLockTimer();
+    }
+    console.log('init: 初始化完成');
+  } catch (e) {
+    console.error('初始化失败:', e);
+    console.error('错误堆栈:', e.stack);
+    // 显示错误信息但不清空数据
+    showToast('初始化出错: ' + e.message, 'error', 5000);
+    if (!records || records.length === 0) {
+      records = [];
+      renderAll();
+    }
+  }
+}
+
+// 等待 DOM 完全加载后再初始化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+// ═══════════════════════════════════════════════════════════
+// 压力测试引擎（供控制台调用）
+// 使用方法：在 DevEco Logcat 或浏览器控制台执行：
+//   generateTestRecords(100)  → 生成100条测试数据
+//   runStressTest()           → 运行100次稳定性测试
+//   clearAllRecords()         → 清空所有数据
+//   batchAdd(50)              → 批量添加N条数据（快捷方式）
+// ═══════════════════════════════════════════════════════════
+
+(function() {
+  var TYPES = ['deposit', 'wealth', 'current'];
+  var BANKS = ['中国工商银行', '中国建设银行', '中国农业银行', '中国银行', '招商银行', '交通银行', '兴业银行', '民生银行', '浦发银行', '光大银行', '平安银行', '华夏银行', '北京银行', '上海银行', '江苏银行', '浙商银行', '网商银行', '微众银行'];
+  var NOTES = ['', '', '', '大额存单', '结构性存款', '普通定期', '阶梯利率', '自动转存', '新客专享'];
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+  function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+  function randDate(daysAgo) {
+    var d = new Date();
+    d.setDate(d.getDate() - randInt(0, daysAgo));
+    return d.toISOString().slice(0, 10);
+  }
+  function randEndDate(startDate, type) {
+    if (type === 'current') return '';
+    if (type === 'wealth') return '';
+    var d = new Date(startDate);
+    var terms = [90, 183, 365, 730, 1095];
+    d.setDate(d.getDate() + terms[randInt(0, terms.length - 1)]);
+    return d.toISOString().slice(0, 10);
+  }
+
+  // 生成单条随机记录
+  function genRecord(index) {
+    var type = TYPES[randInt(0, 2)];
+    var bank = BANKS[randInt(0, BANKS.length - 1)];
+    var rate = parseFloat(rand(0.1, 5.5).toFixed(3));
+    var amountWan = parseFloat(rand(0.1, 200).toFixed(2));
+    var start = randDate(730);
+    var end = randEndDate(start, type);
+    var note = NOTES[randInt(0, NOTES.length - 1)];
+    return {
+      id: Date.now() + index,
+      inst: bank + ' ' + (randInt(1, 20)) + '支行',
+      type: type,
+      rate: rate,
+      amount: Math.round(amountWan * 10000),
+      start: start,
+      end: end,
+      note: note
+    };
+  }
+
+  // 生成N条测试记录（不重复）
+  function generateTestRecords(n) {
+    if (typeof n !== 'number' || n < 1) n = 100;
+    n = Math.min(n, 500);
+    var generated = [];
+    for (var i = 0; i < n; i++) {
+      generated.push(genRecord(i));
+    }
+    var before = records.length;
+    records = records.concat(generated);
+    var after = records.length;
+    saveData();
+    renderAll();
+    console.log('[测试引擎] 生成了 ' + n + ' 条记录，当前总计: ' + after + ' 条（之前 ' + before + ' 条）');
+    return { added: n, total: after };
+  }
+
+  function batchAdd(n) { return generateTestRecords(n); }
+
+  function clearAllRecords() {
+    var count = records.length;
+    records = [];
+    editingId = null;
+    currentFilter = 'all';
+    saveData();
+    renderAll();
+    console.log('[测试引擎] 已清空 ' + count + ' 条记录');
+    return { cleared: count };
+  }
+
+  // ── 上次测试结果存储 ──
+  var lastTestResult = null;
+
+  // 核心稳定性测试（100次迭代）
+  async function runStressTest() {
+    console.log('[压力测试] 开始测试...');
+    console.log('[压力测试] 当前记录数: ' + records.length);
+
+    var results = {
+      add: { pass: 0, fail: 0, errors: [] },
+      delete: { pass: 0, fail: 0, errors: [] },
+      edit: { pass: 0, fail: 0, errors: [] },
+      filter: { pass: 0, fail: 0, errors: [] },
+      render: { pass: 0, fail: 0, errors: [] },
+      save: { pass: 0, fail: 0, errors: [] },
+      load: { pass: 0, fail: 0, errors: [] },
+      calc: { pass: 0, fail: 0, errors: [] },
+      importExport: { pass: 0, fail: 0, errors: [] }
+    };
+
+    var ITERATIONS = 100;
+
+    for (var i = 0; i < ITERATIONS; i++) {
+      // ── 1. 新增测试 ──
+      try {
+        var testRec = genRecord(i + 10000);
+        var lenBefore = records.length;
+        records.push(testRec);
+        if (records.length === lenBefore + 1) results.add.pass++;
+        else { results.add.fail++; results.add.errors.push({ iter: i, msg: '记录未添加，预期长度+' + (lenBefore+1) + '实际' + records.length }); }
+      } catch(e) { results.add.fail++; results.add.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 2. 渲染测试 ──
+      try {
+        renderAll();
+        results.render.pass++;
+      } catch(e) { results.render.fail++; results.render.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 3. 筛选测试 ──
+      try {
+        var filters = ['all', 'deposit', 'wealth', 'current', 'expired', 'urgent'];
+        var f = filters[i % filters.length];
+        currentFilter = f;
+        var filtered = records.filter(function(r) {
+          if (f === 'all') return true;
+          if (f === 'deposit' || f === 'wealth' || f === 'current') return r.type === f;
+          if (f === 'expired') return r.end && new Date(r.end) < new Date();
+          if (f === 'urgent') {
+            if (!r.end) return false;
+            var days = calcDaysBetween(new Date(), new Date(r.end));
+            return days >= 0 && days <= 7;
+          }
+          return true;
+        });
+        results.filter.pass++;
+      } catch(e) { results.filter.fail++; results.filter.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 4. 编辑测试 ──
+      try {
+        if (records.length > 0) {
+          var targetId = records[randInt(0, records.length - 1)].id;
+          var idx = -1;
+          for (var j = 0; j < records.length; j++) {
+            if (records[j].id === targetId) { idx = j; break; }
+          }
+          if (idx >= 0) {
+            records[idx].rate = parseFloat(rand(0.5, 5.0).toFixed(3));
+            records[idx].note = '压力测试迭代' + i;
+            results.edit.pass++;
+          } else { results.edit.fail++; results.edit.errors.push({ iter: i, msg: '找不到目标记录 id=' + targetId }); }
+        } else { results.edit.pass++; }
+      } catch(e) { results.edit.fail++; results.edit.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 5. 保存测试 ──
+      try {
+        saveData();
+        results.save.pass++;
+      } catch(e) { results.save.fail++; results.save.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 6. 删除测试 ──
+      try {
+        if (records.length > 1) {
+          var delId = records[records.length - 1].id;
+          var delIdx = -1;
+          for (var k = 0; k < records.length; k++) {
+            if (records[k].id === delId) { delIdx = k; break; }
+          }
+          if (delIdx >= 0) {
+            records.splice(delIdx, 1);
+            results.delete.pass++;
+          } else { results.delete.fail++; results.delete.errors.push({ iter: i, msg: 'splice 找不到 delId=' + delId }); }
+        } else { results.delete.pass++; }
+      } catch(e) { results.delete.fail++; results.delete.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 7. 加载测试 ──
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          var loaded = JSON.parse(raw);
+          if (Array.isArray(loaded)) results.load.pass++;
+          else { results.load.fail++; results.load.errors.push({ iter: i, msg: 'localStorage 返回非数组，type=' + typeof loaded }); }
+        } else { results.load.pass++; }
+      } catch(e) { results.load.fail++; results.load.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 8. 利息计算测试 ──
+      try {
+        for (var m = 0; m < records.length; m++) {
+          var r = records[m];
+          if (r.end) {
+            calcInterest(r.amount, r.rate, r.start, r.end);
+          } else {
+            calcInterest(r.amount, r.rate, r.start, null);
+          }
+          getDaysRemaining(r.end);
+          getChip(getDaysRemaining(r.end));
+        }
+        results.calc.pass++;
+      } catch(e) { results.calc.fail++; results.calc.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+
+      // ── 9. 导入导出数据格式测试 ──
+      try {
+        var exportData = { version: 2, exportTime: new Date().toISOString(), records: records };
+        var jsonStr = JSON.stringify(exportData);
+        var parsed = JSON.parse(jsonStr);
+        if (parsed && Array.isArray(parsed.records)) results.importExport.pass++;
+        else { results.importExport.fail++; results.importExport.errors.push({ iter: i, msg: '导出数据格式错误' }); }
+      } catch(e) { results.importExport.fail++; results.importExport.errors.push({ iter: i, msg: e.message, stack: e.stack }); }
+    }
+
+    // 汇总
+    var totalPass = 0, totalFail = 0;
+    var keys = Object.keys(results);
+    for (var p = 0; p < keys.length; p++) {
+      totalPass += results[keys[p]].pass;
+      totalFail += results[keys[p]].fail;
+    }
+
+    var summary = {
+      timestamp: new Date().toISOString(),
+      iterations: ITERATIONS,
+      totalPass: totalPass,
+      totalFail: totalFail,
+      passRate: ((totalPass / (totalPass + totalFail)) * 100).toFixed(1) + '%',
+      finalRecordCount: records.length,
+      detail: results
+    };
+
+    // 保存到全局变量
+    lastTestResult = summary;
+
+    // 美化输出
+    console.log('%c[压力测试] 完成！', 'font-weight:bold;font-size:14px;color:#059669');
+    console.log('  迭代次数: ' + ITERATIONS + '  |  通过率: ' + summary.passRate + '  |  总通过: ' + totalPass + '  |  总失败: ' + totalFail);
+    console.log('  最终记录数: ' + records.length + '  |  时间: ' + summary.timestamp);
+
+    // 打印失败详情
+    var failedCount = 0;
+    for (var q = 0; q < keys.length; q++) {
+      var module = results[keys[q]];
+      if (module.fail > 0) {
+        failedCount++;
+        console.group('%c[失败模块] ' + keys[q] + ' 失败 ' + module.fail + ' 次', 'color:#dc2626;font-weight:bold');
+        for (var r = 0; r < module.errors.length; r++) {
+          var err = module.errors[r];
+          console.log('  第' + (err.iter + 1) + '轮: ' + err.msg);
+          if (err.stack) console.log('  堆栈: ' + (err.stack + '').split('\n').slice(0, 3).join(' | '));
+        }
+        console.groupEnd();
+      }
+    }
+    if (failedCount === 0) {
+      console.log('%c✅ 全部通过，无失败项！', 'color:#059669;font-weight:bold;font-size:13px');
+    }
+
+    console.log('%c[提示] 输入 getFailDetails() 可随时查看上次失败的详细信息', 'color:#7c3aed');
+    return summary;
+  }
+
+  // 查询上次测试的失败明细
+  function getFailDetails() {
+    if (!lastTestResult) {
+      console.warn('[测试引擎] 尚无测试记录，请先执行 runStressTest()');
+      return null;
+    }
+    var keys = Object.keys(lastTestResult.detail);
+    var totalFails = lastTestResult.totalFail;
+    console.log('%c[失败明细] 时间: ' + lastTestResult.timestamp + '  |  共 ' + totalFails + ' 个失败项', 'font-weight:bold');
+    if (totalFails === 0) {
+      console.log('%c✅ 无失败项，全部通过！', 'color:#059669;font-weight:bold');
+      return [];
+    }
+    var allFails = [];
+    for (var i = 0; i < keys.length; i++) {
+      var module = lastTestResult.detail[keys[i]];
+      if (module.fail > 0) {
+        console.group('[失败模块] ' + keys[i] + ' (' + module.fail + '次)');
+        for (var j = 0; j < module.errors.length; j++) {
+          var e = module.errors[j];
+          var failInfo = { module: keys[i], iter: e.iter + 1, message: e.msg };
+          allFails.push(failInfo);
+          console.log('  第' + (e.iter + 1) + '轮: ' + e.msg);
+        }
+        console.groupEnd();
+      }
+    }
+    return allFails;
+  }
+
+  window.generateTestRecords = generateTestRecords;
+  window.batchAdd = batchAdd;
+  window.clearAllRecords = clearAllRecords;
+  window.runStressTest = runStressTest;
+  window.getFailDetails = getFailDetails;
+
+  console.log('[测试引擎] 已加载。可用命令:');
+  console.log('  generateTestRecords(n)  - 生成N条测试数据');
+  console.log('  batchAdd(n)             - 快捷添加N条');
+  console.log('  clearAllRecords()       - 清空所有数据');
+  console.log('  runStressTest()        - 运行100次压力测试');
+  console.log('  getFailDetails()        - 查看上次测试失败明细（随时可查）');
+})();
+</script>
+</body>
+</html>
