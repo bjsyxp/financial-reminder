@@ -1396,10 +1396,6 @@
     <div class="stat-row-inner"><span class="stat-icon">🗓️</span><span class="stat-label">本年收益</span></div>
     <div class="stat-value teal" id="statYearly">0.00万</div>
   </div>
-  <div class="stat-card red">
-    <div class="stat-row-inner"><span class="stat-icon">⏰</span><span class="stat-label">30天内到期</span></div>
-    <div class="stat-value red" id="statExpiring">0 笔</div>
-  </div>
 </div>
 
 <!-- Maturity Detail Modal -->
@@ -2330,7 +2326,7 @@ function renderBankSummaryPage() {
 }
 
 function renderStats() {
-  var total=0, interest=0, daily=0, exp30=0, monthly=0, yearly=0;
+  var total=0, interest=0, daily=0, monthly=0, yearly=0;
   var currentTotal = 0; // 活期存款总额
   
   // 获取本月天数和本年天数
@@ -2349,8 +2345,6 @@ function renderStats() {
     daily += c.daily;
     monthly += c.daily * daysInMonth;
     yearly += c.daily * daysInYear;
-    var d = r.end ? getDaysRemaining(r.end) : null;
-    if (d !== null && d >= 0 && d <= 30) exp30++;
     
     // 统计活期存款总额
     if (r.type === 'current') {
@@ -2363,7 +2357,6 @@ function renderStats() {
   var statDailyEl = document.getElementById('statDaily');
   var statMonthlyEl = document.getElementById('statMonthly');
   var statYearlyEl = document.getElementById('statYearly');
-  var statExpiringEl = document.getElementById('statExpiring');
   var totalBadgeEl = document.getElementById('totalBadge');
   var statCurrentTotalEl = document.getElementById('statCurrentTotal');
   
@@ -2372,7 +2365,6 @@ function renderStats() {
   if (statDailyEl) statDailyEl.textContent = fmtMoney(daily);
   if (statMonthlyEl) statMonthlyEl.textContent = fmtMoney(monthly);
   if (statYearlyEl) statYearlyEl.textContent = fmtWan(yearly);
-  if (statExpiringEl) statExpiringEl.textContent = exp30 + ' 笔';
   if (totalBadgeEl) totalBadgeEl.textContent = records.length;
   
   // 活期存款总额
