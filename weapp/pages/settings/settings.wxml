@@ -1,0 +1,64 @@
+<!-- 设置页 -->
+<view class="page">
+
+  <view class="section-title">数据管理</view>
+  <view class="settings">
+    <view class="setting-item" bindtap="exportData">
+      <text>📤 导出数据</text>
+      <text class="setting-arrow">›</text>
+    </view>
+    <view class="setting-item" bindtap="importData">
+      <text>📥 导入数据</text>
+      <text class="setting-arrow">›</text>
+    </view>
+    <view class="setting-item" bindtap="clearData">
+      <text>🗑️ 清空数据</text>
+      <text class="setting-arrow" style="color:#dc2626">›</text>
+    </view>
+  </view>
+
+  <view class="section-title" style="margin-top:20px">安全</view>
+  <view class="settings">
+    <view class="setting-item" bindtap="setPassword">
+      <text>🔐 {{hasPassword ? '修改密码' : '设置密码'}}</text>
+      <text class="setting-arrow">›</text>
+    </view>
+    <view class="setting-item" wx:if="{{hasPassword}}" bindtap="removePassword">
+      <text>🔓 关闭密码</text>
+      <text class="setting-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="section-title" style="margin-top:20px">关于</view>
+  <view class="settings">
+    <view class="setting-item">
+      <text>📱 版本</text>
+      <text class="setting-arrow">V1.0</text>
+    </view>
+    <view class="setting-item">
+      <text>📊 记录总数</text>
+      <text class="setting-arrow">{{recordCount}} 条</text>
+    </view>
+  </view>
+
+  <!-- 导入弹窗 -->
+  <view class="modal-overlay {{showImport ? 'show' : ''}}">
+    <view class="modal">
+      <text class="modal-title">导入数据</text>
+      <text class="modal-tip">从备份文件恢复数据，将替换当前所有记录</text>
+      <button class="modal-btn" bindtap="chooseFile">选择文件</button>
+      <button class="modal-btn modal-btn-cancel" bindtap="hideImport">取消</button>
+    </view>
+  </view>
+
+  <!-- 密码弹窗 -->
+  <view class="modal-overlay {{showPwdModal ? 'show' : ''}}">
+    <view class="modal">
+      <text class="modal-title">{{pwdModalTitle}}</text>
+      <input class="modal-input" type="text" password="{{!showPwd}}" placeholder="输入新密码" value="{{pwdNew}}" bindinput="onPwdInput" />
+      <text class="modal-error">{{pwdError}}</text>
+      <button class="modal-btn" bindtap="confirmPwd">确定</button>
+      <button class="modal-btn modal-btn-cancel" bindtap="hidePwdModal">取消</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/add/add",
+    "pages/maturity/maturity",
+    "pages/bank/bank",
+    "pages/settings/settings"
+  ],
+  "window": {
+    "navigationBarTitleText": "理财提醒",
+    "navigationBarBackgroundColor": "#1e40af",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f1f5f9",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#94a3b8",
+    "selectedColor": "#2563eb",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "资产"
+      },
+      {
+        "pagePath": "pages/maturity/maturity",
+        "text": "到期"
+      },
+      {
+        "pagePath": "pages/bank/bank",
+        "text": "汇总"
+      },
+      {
+        "pagePath": "pages/settings/settings",
+        "text": "设置"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}
