@@ -4,6 +4,20 @@ var util = require('./util');
 var STORAGE_KEY = 'mengmeng_deposits_v2';
 var PWD_KEY = 'mengmeng_pwd_v1';
 
+// ID统一为字符串（兼容源程序Date.now()数字ID）
+function normalizeId(id) {
+  return String(id);
+}
+
+// 查找记录索引（兼容数字/字符串ID）
+function findIndex(records, id) {
+  var nid = normalizeId(id);
+  for (var i = 0; i < records.length; i++) {
+    if (normalizeId(records[i].id) === nid) return i;
+  }
+  return -1;
+}
+
 // 加载所有记录
 function loadRecords() {
   try {
@@ -37,7 +51,7 @@ function addRecord(record) {
 // 更新记录
 function updateRecord(id, data) {
   var records = loadRecords();
-  var idx = records.findIndex(function (r) { return r.id === id; });
+  var idx = findIndex(records, id);
   if (idx === -1) return null;
   // 兼容note/memo字段
   if (data.note !== undefined) data.memo = data.note;
@@ -50,7 +64,8 @@ function updateRecord(id, data) {
 // 删除记录
 function deleteRecord(id) {
   var records = loadRecords();
-  records = records.filter(function (r) { return r.id !== id; });
+  var nid = normalizeId(id);
+  records = records.filter(function (r) { return normalizeId(r.id) !== nid; });
   saveRecords(records);
   return records;
 }
@@ -58,7 +73,11 @@ function deleteRecord(id) {
 // 获取单条记录
 function getRecord(id) {
   var records = loadRecords();
-  return records.find(function (r) { return r.id === id; }) || null;
+  var nid = normalizeId(id);
+  for (var i = 0; i < records.length; i++) {
+    if (normalizeId(records[i].id) === nid) return records[i];
+  }
+  return null;
 }
 
 // 统计
@@ -90,10 +109,11 @@ function getBankSummary(records) {
   var map = {};
   records.forEach(function (r) {
     var inst = r.inst || '未知';
-    if (!map[inst]) map[inst] = { inst: inst, total: 0, count: 0, deposit: 0, wealth: 0, current: 0 };
+    if (!map[inst]) map[inst] = { inst: inst, total: 0, count: 0, deposit: 0, wealth: 0, current: 0, items: [] };
     map[inst].total += r.amount || 0;
     map[inst].count++;
     if (map[inst][r.type] !== undefined) map[inst][r.type] += r.amount || 0;
+    map[inst].items.push(r);
   });
   return Object.keys(map).sort().map(function (k) { return map[k]; });
 }
@@ -109,6 +129,18 @@ function removeStoredHash() {
   try { wx.removeStorageSync(PWD_KEY); return true; } catch (e) { return false; }
 }
 
+// 导入时规范化数据
+function normalizeForImport(records) {
+  return records.map(function (r) {
+    // 确保字段名兼容
+    if (r.note && !r.memo) r.memo = r.note;
+    if (r.memo && !r.note) r.note = r.memo;
+    // 确保ID是字符串
+    if (r.id !== undefined && r.id !== null) r.id = normalizeId(r.id);
+    return r;
+  });
+}
+
 module.exports = {
   loadRecords: loadRecords,
   saveRecords: saveRecords,
@@ -122,5 +154,6 @@ module.exports = {
   getStoredHash: getStoredHash,
   setStoredHash: setStoredHash,
   removeStoredHash: removeStoredHash,
+  normalizeForImport: normalizeForImport,
   STORAGE_KEY: STORAGE_KEY
 }

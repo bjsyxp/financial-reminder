@@ -88,11 +88,6 @@
 .item-bot { display: flex; justify-content: space-between; align-items: center; }
 .chip { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
 .item-profit { font-size: 11px; color: #64748b; }
-.item-del {
-  position: absolute; right: 14px; bottom: 14px;
-  font-size: 11px; color: #dc2626; padding: 4px 8px; display: none;
-}
-.list-item:active .item-del { display: block; }
 
 .empty {
   text-align: center; padding: 60px 0; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 8px;

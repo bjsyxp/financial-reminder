@@ -104,6 +104,7 @@ Page({
             wx.showToast({ title: '剪贴板中没有有效记录', icon: 'none' });
             return;
           }
+          records = store.normalizeForImport(records);
           store.saveRecords(records);
           self.hideImport();
           wx.showToast({ title: '导入成功: ' + records.length + ' 条', icon: 'success' });
@@ -137,6 +138,7 @@ Page({
                 wx.showToast({ title: '文件中没有有效记录', icon: 'none' });
                 return;
               }
+              records = store.normalizeForImport(records);
               store.saveRecords(records);
               self.hideImport();
               wx.showToast({ title: '导入成功: ' + records.length + ' 条', icon: 'success' });
