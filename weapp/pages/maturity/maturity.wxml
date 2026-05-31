@@ -20,22 +20,22 @@
     <view class="sec-head">
       <view class="sec-dot dot-o"></view>
       <text class="sec-title">1年内到期</text>
-      <text class="sec-amount">{{util.fmtWan(stats.y1)}}</text>
+      <text class="sec-amount">{{stats.y1}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y1}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
           <view class="mc-inst">{{item.inst}}</view>
-          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
+          <view class="mc-amount">{{item._amountWan}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-deposit" wx:if="{{item.type === 'deposit'}}">定期</text>
           <text class="mc-type type-wealth" wx:if="{{item.type === 'wealth'}}">理财</text>
           <text class="mc-rate">{{item.rate}}%</text>
-          <text class="mc-date">{{util.fmtDate(item.start)}} ~ {{util.fmtDate(item.end)}}</text>
+          <text class="mc-date">{{item._dateRange}}</text>
         </view>
         <view class="mc-bot">
-          <text class="chip chip-o">{{chipData[item.id].text}}</text>
+          <text class="chip chip-o">{{item._chip.text}}</text>
         </view>
       </view>
     </view>
@@ -46,7 +46,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-b"></view>
       <text class="sec-title">2年内到期</text>
-      <text class="sec-amount">{{util.fmtWan(stats.y2)}}</text>
+      <text class="sec-amount">{{stats.y2}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y2}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
@@ -72,7 +72,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-g"></view>
       <text class="sec-title">3年内到期</text>
-      <text class="sec-amount">{{util.fmtWan(stats.y3)}}</text>
+      <text class="sec-amount">{{stats.y3}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y3}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
@@ -98,18 +98,18 @@
     <view class="sec-head">
       <view class="sec-dot dot-p"></view>
       <text class="sec-title">活期存款</text>
-      <text class="sec-amount">{{util.fmtWan(stats.current)}}</text>
+      <text class="sec-amount">{{stats.current}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.current}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
           <view class="mc-inst">{{item.inst}}</view>
-          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
+          <view class="mc-amount">{{item._amountWan}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-current">活期</text>
           <text class="mc-rate">{{item.rate}}%</text>
-          <text class="mc-date">{{util.fmtDate(item.start)}} ~ 长期</text>
+          <text class="mc-date">{{item._dateRange}}</text>
         </view>
         <view class="mc-bot">
           <text class="chip chip-p">无到期</text>

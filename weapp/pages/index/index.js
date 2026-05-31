@@ -14,18 +14,13 @@ Page({
     records: [],
     filteredRecords: [],
     stats: { totalWan: '0.00万', totalMoney: '¥0.00', interestWan: '0.00万', interestMoney: '¥0.00', count: 0 },
-    byType: { all: { count: 0 }, deposit: { count: 0 }, wealth: { count: 0 }, current: { count: 0 } },
-    chipData: {},
-    profitData: {},
-    profitDaily: {},
-    util: util
+    byType: { all: { count: 0 }, deposit: { count: 0 }, wealth: { count: 0 }, current: { count: 0 } }
   },
 
   onLoad: function () {
     var hash = store.getStoredHash();
     this.setData({ hasPassword: !!hash });
     if (!hash) {
-      // 无密码，直接进入
       this.setData({ locked: false });
       this.refreshData();
     }
@@ -37,7 +32,6 @@ Page({
     }
   },
 
-  // 密码输入
   onPwdInput: function (e) {
     this.setData({ pwdInput: e.detail.value, pwdError: '' });
   },
@@ -49,12 +43,8 @@ Page({
   onPwdConfirm: function () {
     var hash = store.getStoredHash();
     var input = this.data.pwdInput;
-    if (!input) {
-      this.setData({ pwdError: '请输入密码' });
-      return;
-    }
-    var inputHash = util.sha256(input);
-    if (inputHash === hash) {
+    if (!input) { this.setData({ pwdError: '请输入密码' }); return; }
+    if (util.sha256(input) === hash) {
       this.setData({ locked: false, pwdError: '' });
       this.refreshData();
     } else {
@@ -64,30 +54,29 @@ Page({
 
   onSetPwd: function () {
     var input = this.data.pwdInput;
-    if (!input || input.length < 4) {
-      this.setData({ pwdError: '密码至少4位' });
-      return;
-    }
+    if (!input || input.length < 4) { this.setData({ pwdError: '密码至少4位' }); return; }
     store.setStoredHash(util.sha256(input));
     this.setData({ hasPassword: true, locked: false, pwdError: '✅ 密码设置成功' });
     this.refreshData();
   },
 
-  // 刷新数据
+  // 刷新数据 — 预计算所有显示值
   refreshData: function () {
     var records = store.loadRecords();
     var stats = store.getStats(records);
     var byType = store.statsByType(records);
 
-    // 到期标签和收益
-    var chipData = {}, profitData = {}, profitDaily = {};
-    records.forEach(function (r) {
+    // 给每条记录附加格式化后的显示字段
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
       var days = util.getDaysRemaining(r.end);
-      chipData[r.id] = util.getChip(days);
       var c = util.calcInterest(r.amount, r.rate, r.start, r.end);
-      profitData[r.id] = c.interest;
-      profitDaily[r.id] = c.daily;
-    });
+      r._chip = util.getChip(days);
+      r._profit = util.fmtMoney(c.interest);
+      r._daily = util.fmtMoney(c.daily);
+      r._amountWan = util.fmtWan(r.amount);
+      r._dateRange = util.fmtDate(r.start) + ' ~ ' + (r.end ? util.fmtDate(r.end) : '长期');
+    }
 
     this.setData({
       records: records,
@@ -104,33 +93,32 @@ Page({
         deposit: byType.deposit,
         wealth: byType.wealth,
         current: byType.current
-      },
-      chipData: chipData,
-      profitData: profitData,
-      profitDaily: profitDaily
+      }
     });
   },
 
-  // 筛选
   setFilter: function (e) {
     var filter = e.currentTarget.dataset.filter;
     var records = this.data.records;
-    var filtered = filter === 'all' ? records : records.filter(function (r) { return r.type === filter; });
+    var filtered = filter === 'all' ? records : [];
+    if (filter !== 'all') {
+      filtered = [];
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].type === filter) filtered.push(records[i]);
+      }
+    }
     this.setData({ filter: filter, filteredRecords: filtered });
   },
 
-  // 添加
   addRecord: function () {
     wx.navigateTo({ url: '/pages/add/add' });
   },
 
-  // 编辑
   editRecord: function (e) {
     var id = e.currentTarget.dataset.id;
     wx.navigateTo({ url: '/pages/add/add?id=' + id });
   },
 
-  // 删除
   deleteRecord: function (e) {
     var id = e.currentTarget.dataset.id;
     var self = this;
@@ -139,11 +127,9 @@ Page({
       content: '确定要删除这条记录吗？',
       success: function (res) {
         if (res.confirm) {
-          var records = store.deleteRecord(id);
+          store.deleteRecord(id);
           self.refreshData();
-          // 重新应用筛选
-          self.setData({ records: records });
-          self.setFilter({ currentTarget: { dataset: { filter: self.data.filter } } });
+          self.setData({ filter: self.data.filter });
           wx.showToast({ title: '已删除', icon: 'success' });
         }
       }

@@ -61,21 +61,21 @@
   </view>
 
   <!-- 列表 -->
-  <scroll-view class="list-scroll" scroll-y="{{true}}" bindscrolltolower="loadMore">
+  <scroll-view class="list-scroll" scroll-y="{{true}}">
     <view class="list">
       <view class="list-item" wx:for="{{filteredRecords}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}" bindlongpress="deleteRecord" data-id="{{item.id}}">
         <view class="item-top">
           <view class="item-inst">{{item.inst}}</view>
-          <view class="item-amount">{{util.fmtWan(item.amount)}}</view>
+          <view class="item-amount">{{item._amountWan}}</view>
         </view>
         <view class="item-mid">
-          <text class="item-type type-tag type-{{item.type}}">{{util.TYPE_LABELS[item.type]}}</text>
+          <text class="item-type type-tag type-{{item.type}}">{{item.type === 'deposit' ? '定期存款' : item.type === 'wealth' ? '理财产品' : '活期存款'}}</text>
           <text class="item-rate">{{item.rate}}%</text>
-          <text class="item-date">{{util.fmtDate(item.start)}} ~ {{item.end ? util.fmtDate(item.end) : '长期'}}</text>
+          <text class="item-date">{{item._dateRange}}</text>
         </view>
         <view class="item-bot">
-          <view class="chip {{chipData[item.id].cls}}">{{chipData[item.id].text}}</view>
-          <view class="item-profit">日收益 {{util.fmtMoney(profitDaily[item.id])}} | 总收益 {{util.fmtMoney(profitData[item.id])}}</view>
+          <view class="chip {{item._chip.cls}}">{{item._chip.text}}</view>
+          <view class="item-profit">日收益 {{item._daily}} | 总收益 {{item._profit}}</view>
         </view>
       </view>
 
