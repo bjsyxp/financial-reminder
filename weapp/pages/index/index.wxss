@@ -58,27 +58,17 @@
 .stat-value { font-size: 20px; font-weight: 800; display: block; margin-bottom: 2px; }
 .stat-sub { font-size: 10px; opacity: 0.6; display: block; }
 
-/* ─── 类型筛选 ─── */
-.type-bar {
-  display: flex; gap: 8px; padding: 10px 12px;
-}
-.type-item {
-  flex: 1; text-align: center; padding: 8px 4px;
-  background: white; border-radius: 10px; border: 1px solid #e2e8f0;
-  font-size: 13px; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 2px;
-}
-.type-item.active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
-.type-count { font-size: 16px; font-weight: 700; color: #1e293b; }
-.type-count-g { color: #059669; }
-.type-count-b { color: #2563eb; }
-.type-count-p { color: #8b5cf6; }
-
 /* ─── 列表 ─── */
 .list-scroll { padding: 0 12px; max-height: calc(100vh - 280px); }
 .list-item {
-  background: white; border-radius: 12px; padding: 14px; margin-bottom: 8px;
-  border: 1px solid #e2e8f0; position: relative;
+  background: white; border-radius: 12px; padding: 14px 14px 14px 16px;
+  margin-bottom: 8px; position: relative; overflow: hidden;
+  border-left: 4px solid #e2e8f0;
 }
+/* 类型左色条 */
+.list-item[data-type="deposit"] { border-left-color: #059669; }
+.list-item[data-type="wealth"] { border-left-color: #2563eb; }
+.list-item[data-type="current"] { border-left-color: #8b5cf6; }
 .item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .item-inst { font-size: 15px; font-weight: 600; color: #1e293b; }
 .item-amount { font-size: 16px; font-weight: 700; color: #2563eb; }
@@ -94,6 +84,34 @@
 .item-bot { display: flex; justify-content: space-between; align-items: center; }
 .chip { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
 .item-profit { font-size: 11px; color: #64748b; }
+
+/* ─── 类型筛选条 ─── */
+.type-bar {
+  display: flex; gap: 8px; padding: 10px 12px;
+}
+.type-item {
+  flex: 1; text-align: center; padding: 8px 4px;
+  background: white; border-radius: 10px; border: 1px solid #e2e8f0;
+  font-size: 13px; color: #64748b;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: all 0.2s;
+}
+.type-item.active[data-filter="deposit"] {
+  border-color: #059669; color: #059669; background: #f0fdf4;
+}
+.type-item.active[data-filter="wealth"] {
+  border-color: #2563eb; color: #2563eb; background: #eff6ff;
+}
+.type-item.active[data-filter="current"] {
+  border-color: #8b5cf6; color: #8b5cf6; background: #f5f3ff;
+}
+.type-item.active[data-filter="all"] {
+  border-color: #1e293b; color: #1e293b; background: #f8fafc;
+}
+.type-count { font-size: 16px; font-weight: 700; color: #1e293b; }
+.type-count-g { color: #059669; }
+.type-count-b { color: #2563eb; }
+.type-count-p { color: #8b5cf6; }
 
 .empty {
   text-align: center; padding: 60px 0; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 8px;

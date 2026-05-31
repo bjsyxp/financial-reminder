@@ -7,17 +7,30 @@ page {
   line-height: 1.5;
 }
 
-/* 颜色变量还原PWA原有配色 */
-.primary { color: #2563eb; }
-.success { color: #059669; }
-.warning { color: #d97706; }
-.danger { color: #dc2626; }
-.primary-bg { background: #2563eb; }
-.text-muted { color: #64748b; font-size: 12px; }
+/* ─── 资产类型色系 ─── */
+/* 定期 = 绿 */
+.clr-deposit, .tag-deposit { color: #059669; }
+.bg-deposit { background: #d1fae5; }
+.border-deposit { border-color: #059669; }
+/* 理财 = 蓝 */
+.clr-wealth, .tag-wealth { color: #2563eb; }
+.bg-wealth { background: #dbeafe; }
+.border-wealth { border-color: #2563eb; }
+/* 活期 = 紫 */
+.clr-current, .tag-current { color: #8b5cf6; }
+.bg-current { background: #ede9fe; }
+.border-current { border-color: #8b5cf6; }
 
-/* 到期标签颜色 — 按年分级 */
+/* ─── 到期标签颜色 — 按年分级 ─── */
 .tag-expired { background: #fee2e2; color: #dc2626; }
 .tag-y1      { background: #fef3c7; color: #d97706; }
 .tag-y2      { background: #dbeafe; color: #2563eb; }
 .tag-y3      { background: #d1fae5; color: #059669; }
 .tag-y4      { background: #ede9fe; color: #8b5cf6; }
+
+/* ─── 通用卡片阴影 ─── */
+.card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+/* ─── 通用文字 ─── */
+.primary { color: #2563eb; }
+.text-muted { color: #64748b; font-size: 12px; }

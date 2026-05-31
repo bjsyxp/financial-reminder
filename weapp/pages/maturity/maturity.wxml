@@ -16,7 +16,7 @@
   </view>
 
   <!-- 1年内 -->
-  <view class="section" wx:if="{{groups.y1.length > 0}}">
+  <view class="section groups-y1" wx:if="{{groups.y1.length > 0}}">
     <view class="sec-head">
       <view class="sec-dot dot-o"></view>
       <text class="sec-title">1年内到期</text>
@@ -42,7 +42,7 @@
   </view>
 
   <!-- 2年内 -->
-  <view class="section" wx:if="{{groups.y2.length > 0}}">
+  <view class="section groups-y2" wx:if="{{groups.y2.length > 0}}">
     <view class="sec-head">
       <view class="sec-dot dot-b"></view>
       <text class="sec-title">2年内到期</text>
@@ -68,7 +68,7 @@
   </view>
 
   <!-- 3年内 -->
-  <view class="section" wx:if="{{groups.y3.length > 0}}">
+  <view class="section groups-y3" wx:if="{{groups.y3.length > 0}}">
     <view class="sec-head">
       <view class="sec-dot dot-g"></view>
       <text class="sec-title">3年内到期</text>
@@ -94,7 +94,7 @@
   </view>
 
   <!-- 活期 -->
-  <view class="section" wx:if="{{groups.current.length > 0}}">
+  <view class="section groups-current" wx:if="{{groups.current.length > 0}}">
     <view class="sec-head">
       <view class="sec-dot dot-p"></view>
       <text class="sec-title">活期存款</text>

@@ -9,7 +9,10 @@
   padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9;
 }
 .setting-item:last-child { border-bottom: none; }
+.setting-item:active { background: #f8fafc; }
 .setting-arrow { color: #94a3b8; font-size: 18px; }
+.setting-item:first-child { border-radius: 12px 12px 0 0; }
+.setting-item:last-child { border-radius: 0 0 12px 12px; }
 
 /* 弹窗 */
 .modal-overlay {

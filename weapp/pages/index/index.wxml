@@ -63,7 +63,7 @@
   <!-- 列表 -->
   <scroll-view class="list-scroll" scroll-y="{{true}}">
     <view class="list">
-      <view class="list-item" wx:for="{{filteredRecords}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}" bindlongpress="deleteRecord" data-id="{{item.id}}">
+      <view class="list-item" wx:for="{{filteredRecords}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}" data-type="{{item.type}}" bindlongpress="deleteRecord" data-id="{{item.id}}">
         <view class="item-top">
           <view class="item-inst">{{item.inst}}</view>
           <view class="item-amount">{{item._amountWan}}</view>

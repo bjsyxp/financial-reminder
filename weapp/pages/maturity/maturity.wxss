@@ -34,9 +34,14 @@
 .m-card {
   background: white; border-radius: 14px; padding: 14px 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border: 1px solid #f0f0f0;
+  border-left: 4px solid #e2e8f0;
   transition: all 0.2s;
 }
+/* 按组分色条 */
+.groups-y1 .m-card { border-left-color: #d97706; }
+.groups-y2 .m-card { border-left-color: #2563eb; }
+.groups-y3 .m-card { border-left-color: #059669; }
+.groups-current .m-card { border-left-color: #8b5cf6; }
 .m-card:active { transform: scale(0.98); background: #fafbfc; }
 .mc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .mc-inst { font-size: 15px; font-weight: 600; }
