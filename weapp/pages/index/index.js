@@ -67,10 +67,12 @@ Page({
     var byType = store.statsByType(records);
 
     // 给每条记录附加格式化后的显示字段
+    var totalDaily = 0;
     for (var i = 0; i < records.length; i++) {
       var r = records[i];
       var days = util.getDaysRemaining(r.end);
       var c = util.calcInterest(r.amount, r.rate, r.start, r.end);
+      totalDaily += c.daily;
       r._chip = util.getChip(days);
       r._profit = util.fmtMoney(c.interest);
       r._daily = util.fmtMoney(c.daily);
@@ -86,6 +88,8 @@ Page({
         totalMoney: util.fmtMoney(stats.total),
         interestWan: util.fmtWan(stats.totalInterest),
         interestMoney: util.fmtMoney(stats.totalInterest),
+        dailyWan: util.fmtWan(totalDaily * 365),
+        dailyMoney: util.fmtMoney(totalDaily),
         count: stats.count
       },
       byType: {

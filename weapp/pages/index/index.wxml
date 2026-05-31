@@ -34,9 +34,9 @@
       <view class="stat-sub">{{stats.interestMoney}}</view>
     </view>
     <view class="stat-card orange">
-      <view class="stat-label">笔数</view>
-      <view class="stat-value">{{stats.count}}</view>
-      <view class="stat-sub">当前持有</view>
+      <view class="stat-label">当日收益</view>
+      <view class="stat-value">{{stats.dailyMoney}}</view>
+      <view class="stat-sub">{{stats.dailyWan}}/年</view>
     </view>
   </view>
 
