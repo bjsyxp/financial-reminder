@@ -8,8 +8,9 @@
       <view class="lock-title">理财提醒</view>
       <view class="lock-subtitle">请输入密码</view>
       <view class="lock-input-area">
-        <input class="lock-input" type="text" password="{{!showPwd}}" maxlength="20"
-          focus="{{lockFocus}}" value="{{pwdInput}}" bindinput="onPwdInput" bindconfirm="onPwdConfirm" />
+        <input class="lock-input" type="text" maxlength="20"
+          focus="{{lockFocus}}" value="{{pwdInput}}" bindinput="onPwdInput" bindconfirm="onPwdConfirm"
+          password="{{!showPwd}}" always-embed="{{true}}" />
         <text class="lock-toggle" bindtap="togglePwdShow">{{showPwd ? '隐藏' : '显示'}}</text>
       </view>
       <view class="lock-error">{{pwdError}}</view>
