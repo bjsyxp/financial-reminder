@@ -1,14 +1,30 @@
 // 理财提醒 - 工具函数
 
-// 万元格式化
+// 万元格式化：将元转为万元显示，保留2位小数
 function fmtWan(n) {
+  if (n === undefined || n === null) return '0.00万';
   var wan = n / 10000;
-  return wan.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '万';
+  var intPart = Math.floor(Math.abs(wan));
+  var decPart = Math.round((Math.abs(wan) - intPart) * 100);
+  var sign = wan < 0 ? '-' : '';
+  return sign + String(intPart) + '.' + String(decPart).padStart(2, '0') + '万';
 }
 
 // 金额格式化 ¥xx.xx
 function fmtMoney(n) {
-  return '¥' + Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n === undefined || n === null) return '¥0.00';
+  var abs = Math.abs(n);
+  var intPart = Math.floor(abs);
+  var decPart = Math.round((abs - intPart) * 100);
+  var sign = n < 0 ? '-' : '';
+  // 千分位
+  var intStr = String(intPart);
+  var result = '';
+  for (var i = intStr.length - 1, j = 0; i >= 0; i--, j++) {
+    if (j > 0 && j % 3 === 0) result = ',' + result;
+    result = intStr[i] + result;
+  }
+  return sign + '¥' + result + '.' + String(decPart).padStart(2, '0');
 }
 
 // 日期格式化 YYYY/MM/DD

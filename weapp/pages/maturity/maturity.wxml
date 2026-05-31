@@ -20,7 +20,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-o"></view>
       <text class="sec-title">1年内到期</text>
-      <text class="sec-amount">{{util.fmtMoney(stats.y1)}}</text>
+      <text class="sec-amount">{{util.fmtWan(stats.y1)}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y1}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
@@ -46,7 +46,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-b"></view>
       <text class="sec-title">2年内到期</text>
-      <text class="sec-amount">{{util.fmtMoney(stats.y2)}}</text>
+      <text class="sec-amount">{{util.fmtWan(stats.y2)}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y2}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
@@ -72,7 +72,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-g"></view>
       <text class="sec-title">3年内到期</text>
-      <text class="sec-amount">{{util.fmtMoney(stats.y3)}}</text>
+      <text class="sec-amount">{{util.fmtWan(stats.y3)}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y3}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
@@ -98,7 +98,7 @@
     <view class="sec-head">
       <view class="sec-dot dot-p"></view>
       <text class="sec-title">活期存款</text>
-      <text class="sec-amount">{{util.fmtMoney(stats.current)}}</text>
+      <text class="sec-amount">{{util.fmtWan(stats.current)}}</text>
     </view>
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.current}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">

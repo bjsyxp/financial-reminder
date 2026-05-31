@@ -17,6 +17,7 @@ Page({
     byType: { all: { count: 0 }, deposit: { count: 0 }, wealth: { count: 0 }, current: { count: 0 } },
     chipData: {},
     profitData: {},
+    profitDaily: {},
     util: util
   },
 
@@ -79,11 +80,13 @@ Page({
     var byType = store.statsByType(records);
 
     // 到期标签和收益
-    var chipData = {}, profitData = {};
+    var chipData = {}, profitData = {}, profitDaily = {};
     records.forEach(function (r) {
       var days = util.getDaysRemaining(r.end);
       chipData[r.id] = util.getChip(days);
-      profitData[r.id] = util.calcInterest(r.amount, r.rate, r.start, r.end).interest;
+      var c = util.calcInterest(r.amount, r.rate, r.start, r.end);
+      profitData[r.id] = c.interest;
+      profitDaily[r.id] = c.daily;
     });
 
     this.setData({
@@ -103,7 +106,8 @@ Page({
         current: byType.current
       },
       chipData: chipData,
-      profitData: profitData
+      profitData: profitData,
+      profitDaily: profitDaily
     });
   },
 

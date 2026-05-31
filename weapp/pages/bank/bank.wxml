@@ -14,7 +14,7 @@
           <text class="bi-count">{{item.count}} 笔</text>
         </view>
         <view class="bi-right">
-          <text class="bi-total">{{util.fmtMoney(item.total)}}</text>
+          <text class="bi-total">{{util.fmtWan(item.total)}}</text>
           <text class="bi-arrow {{item.expanded ? 'up' : ''}}">›</text>
         </view>
       </view>

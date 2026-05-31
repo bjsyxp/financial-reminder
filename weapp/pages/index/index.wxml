@@ -75,7 +75,7 @@
         </view>
         <view class="item-bot">
           <view class="chip {{chipData[item.id].cls}}">{{chipData[item.id].text}}</view>
-          <view class="item-profit">收益 {{util.fmtMoney(profitData[item.id])}}</view>
+          <view class="item-profit">日收益 {{util.fmtMoney(profitDaily[item.id])}} | 总收益 {{util.fmtMoney(profitData[item.id])}}</view>
         </view>
       </view>
 
