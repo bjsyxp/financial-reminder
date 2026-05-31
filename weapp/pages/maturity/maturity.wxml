@@ -25,8 +25,8 @@
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y1}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
-          <text class="mc-inst">{{item.inst}}</text>
-          <text class="mc-amount">{{util.fmtMoney(item.amount)}}</text>
+          <view class="mc-inst">{{item.inst}}</view>
+          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-deposit" wx:if="{{item.type === 'deposit'}}">定期</text>
@@ -51,8 +51,8 @@
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y2}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
-          <text class="mc-inst">{{item.inst}}</text>
-          <text class="mc-amount">{{util.fmtMoney(item.amount)}}</text>
+          <view class="mc-inst">{{item.inst}}</view>
+          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-deposit" wx:if="{{item.type === 'deposit'}}">定期</text>
@@ -77,8 +77,8 @@
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.y3}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
-          <text class="mc-inst">{{item.inst}}</text>
-          <text class="mc-amount">{{util.fmtMoney(item.amount)}}</text>
+          <view class="mc-inst">{{item.inst}}</view>
+          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-deposit" wx:if="{{item.type === 'deposit'}}">定期</text>
@@ -103,8 +103,8 @@
     <view class="sec-body">
       <view class="m-card" wx:for="{{groups.current}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="mc-top">
-          <text class="mc-inst">{{item.inst}}</text>
-          <text class="mc-amount">{{util.fmtMoney(item.amount)}}</text>
+          <view class="mc-inst">{{item.inst}}</view>
+          <view class="mc-amount">{{util.fmtWan(item.amount)}}</view>
         </view>
         <view class="mc-mid">
           <text class="mc-type type-current">活期</text>

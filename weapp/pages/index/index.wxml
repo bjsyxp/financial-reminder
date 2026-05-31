@@ -65,7 +65,7 @@
       <view class="list-item" wx:for="{{filteredRecords}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
         <view class="item-top">
           <view class="item-inst">{{item.inst}}</view>
-          <view class="item-amount">{{util.fmtMoney(item.amount)}}</view>
+          <view class="item-amount">{{util.fmtWan(item.amount)}}</view>
         </view>
         <view class="item-mid">
           <text class="item-type type-tag type-{{item.type}}">{{util.TYPE_LABELS[item.type]}}</text>

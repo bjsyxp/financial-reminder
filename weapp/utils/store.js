@@ -39,6 +39,9 @@ function updateRecord(id, data) {
   var records = loadRecords();
   var idx = records.findIndex(function (r) { return r.id === id; });
   if (idx === -1) return null;
+  // 兼容note/memo字段
+  if (data.note !== undefined) data.memo = data.note;
+  if (data.memo !== undefined) data.note = data.memo;
   records[idx] = Object.assign(records[idx], data);
   saveRecords(records);
   return records;

@@ -1,61 +1,84 @@
-<!-- 添加/编辑资产 -->
+<!-- 添加/编辑 — 完全对照源程序 -->
 <view class="page">
   <view class="form">
-    <!-- 类型选择 -->
-    <view class="form-group">
+    <!-- 机构名称 + 常用银行 -->
+    <view class="form-section">
+      <text class="form-label">存款机构名称</text>
+      <scroll-view class="bank-tags" scroll-x="{{true}}" show-scrollbar="{{false}}">
+        <view class="bank-tag" wx:for="{{commonBanks}}" wx:key="*this" bindtap="pickBank" data-name="{{item}}">{{item}}</view>
+      </scroll-view>
+      <input class="form-input" placeholder="如：工商银行、招商银行理财..." value="{{form.inst}}" bindinput="onInput" data-field="inst" />
+    </view>
+
+    <!-- 类型 -->
+    <view class="form-section">
       <text class="form-label">类型</text>
       <view class="type-select">
-        <view class="type-option {{form.type === 'deposit' ? 'active' : ''}} type-g"
-          bindtap="setType" data-type="deposit">定期存款</view>
-        <view class="type-option {{form.type === 'wealth' ? 'active' : ''}} type-b"
-          bindtap="setType" data-type="wealth">理财产品</view>
-        <view class="type-option {{form.type === 'current' ? 'active' : ''}} type-p"
-          bindtap="setType" data-type="current">活期存款</view>
+        <view class="type-opt {{form.type === 'deposit' ? 'active' : ''}}" bindtap="setType" data-type="deposit">定期存款</view>
+        <view class="type-opt {{form.type === 'wealth' ? 'active' : ''}}" bindtap="setType" data-type="wealth">理财产品</view>
+        <view class="type-opt {{form.type === 'current' ? 'active' : ''}}" bindtap="setType" data-type="current">活期存款</view>
       </view>
     </view>
 
-    <!-- 机构 -->
-    <view class="form-group">
-      <text class="form-label">机构名称</text>
-      <input class="form-input" placeholder="如：工商银行" value="{{form.inst}}" bindinput="onInput" data-field="inst" />
+    <!-- 金额 + 利率 两列 -->
+    <view class="form-row">
+      <view class="form-section form-half">
+        <text class="form-label">存入金额（万元）</text>
+        <input class="form-input" type="digit" placeholder="如：10" value="{{form.amountStr}}" bindinput="onAmountInput" />
+      </view>
+      <view class="form-section form-half">
+        <text class="form-label">年利率（%）</text>
+        <input class="form-input" type="digit" placeholder="如：2.75" value="{{form.rate}}" bindinput="onRateInput" />
+      </view>
     </view>
 
-    <!-- 金额 -->
-    <view class="form-group">
-      <text class="form-label">金额（元）</text>
-      <input class="form-input" type="digit" placeholder="输入金额" value="{{form.amount}}" bindinput="onInput" data-field="amount" />
+    <!-- 月收益（通过月收益反算利率） -->
+    <view class="form-section">
+      <text class="form-label form-label-sm">月收益（选填，输入自动算利率）</text>
+      <view class="input-suffix">
+        <input class="form-input" type="digit" placeholder="输入月收益自动计算利率" value="{{form.monthlyIncome}}" bindinput="onMonthlyInput" />
+        <text class="suffix">元</text>
+      </view>
     </view>
 
-    <!-- 年利率 -->
-    <view class="form-group">
-      <text class="form-label">年利率（%）</text>
-      <input class="form-input" type="digit" placeholder="如：3.5" value="{{form.rate}}" bindinput="onInput" data-field="rate" />
+    <!-- 起息日 + 到期日 两列 -->
+    <view class="form-row">
+      <view class="form-section form-half">
+        <text class="form-label">起息日</text>
+        <picker mode="date" value="{{form.start}}" bindchange="onDateChange" data-field="start">
+          <view class="form-input form-picker">{{form.start || '选择'}}</view>
+        </picker>
+      </view>
+      <view class="form-section form-half" wx:if="{{form.type !== 'current'}}">
+        <text class="form-label">到期日</text>
+        <picker mode="date" value="{{form.end}}" bindchange="onDateChange" data-field="end">
+          <view class="form-input form-picker">{{form.end || '选择'}}</view>
+        </picker>
+      </view>
     </view>
 
-    <!-- 起息日 -->
-    <view class="form-group">
-      <text class="form-label">起息日</text>
-      <picker mode="date" value="{{form.start}}" bindchange="onDateChange" data-field="start">
-        <view class="form-input form-picker">{{form.start || '选择日期'}}</view>
+    <!-- 期限（仅定期） -->
+    <view class="form-section" wx:if="{{form.type === 'deposit'}}">
+      <text class="form-label">期限</text>
+      <picker mode="selector" range="{{termList}}" value="{{form.termIdx}}" bindchange="onTermChange">
+        <view class="form-input form-picker">{{termList[form.termIdx] || '手动填写'}}</view>
       </picker>
     </view>
 
-    <!-- 到期日（活期不可选） -->
-    <view class="form-group" wx:if="{{form.type !== 'current'}}">
-      <text class="form-label">到期日</text>
-      <picker mode="date" value="{{form.end}}" bindchange="onDateChange" data-field="end">
-        <view class="form-input form-picker">{{form.end || '选择日期'}}</view>
-      </picker>
+    <!-- 利息预览 -->
+    <view class="preview" wx:if="{{previewShow}}">
+      <text class="preview-icon">📊</text>
+      <text class="preview-text">{{previewText}}</text>
     </view>
 
     <!-- 备注 -->
-    <view class="form-group">
+    <view class="form-section">
       <text class="form-label">备注</text>
-      <input class="form-input" placeholder="可选" value="{{form.memo}}" bindinput="onInput" data-field="memo" />
+      <input class="form-input" placeholder="可选" value="{{form.note}}" bindinput="onInput" data-field="note" />
     </view>
 
     <!-- 按钮 -->
-    <button class="form-btn" bindtap="onSave">{{editId ? '保存修改' : '添加记录'}}</button>
-    <button class="form-btn form-btn-cancel" wx:if="{{editId}}" bindtap="onCancel">取消</button>
+    <button class="form-save" bindtap="onSave">{{editId ? '保存修改' : '添加'}}</button>
+    <button class="form-cancel" wx:if="{{editId}}" bindtap="onCancel">取消</button>
   </view>
 </view>
