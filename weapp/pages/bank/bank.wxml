@@ -1,24 +1,42 @@
-<!-- 银行汇总 -->
+<!-- 银行汇总 — 可展开 -->
 <view class="page">
-  <view class="total-row">
-    <view class="total-card">
-      <text class="total-label">合计资产</text>
-      <text class="total-value">{{totalWan}}</text>
-      <text class="total-sub">{{totalMoney}}</text>
-    </view>
+  <view class="total-card">
+    <text class="tc-label">合计资产</text>
+    <text class="tc-value">{{totalWan}}</text>
+    <text class="tc-sub">{{totalMoney}}</text>
   </view>
 
   <view class="bank-list">
-    <view class="bank-item" wx:for="{{banks}}" wx:key="inst">
-      <view class="bank-header">
-        <text class="bank-name">{{item.inst}}</text>
-        <text class="bank-total">{{util.fmtMoney(item.total)}}</text>
+    <view class="bank-item" wx:for="{{banks}}" wx:key="inst" data-inst="{{item.inst}}" bindtap="toggleBank">
+      <view class="bi-top">
+        <view class="bi-left">
+          <text class="bi-name">{{item.inst}}</text>
+          <text class="bi-count">{{item.count}} 笔</text>
+        </view>
+        <view class="bi-right">
+          <text class="bi-total">{{util.fmtMoney(item.total)}}</text>
+          <text class="bi-arrow {{item.expanded ? 'up' : ''}}">›</text>
+        </view>
       </view>
-      <view class="bank-stats">
-        <text>共 {{item.count}} 笔</text>
-        <text wx:if="{{item.deposit > 0}}">定期 {{util.fmtMoney(item.deposit)}}</text>
-        <text wx:if="{{item.wealth > 0}}">理财 {{util.fmtMoney(item.wealth)}}</text>
-        <text wx:if="{{item.current > 0}}">活期 {{util.fmtMoney(item.current)}}</text>
+      <view class="bi-types" wx:if="{{!item.expanded}}">
+        <text class="bi-type" wx:if="{{item.deposit > 0}}">定期 {{util.fmtMoney(item.deposit)}}</text>
+        <text class="bi-type" wx:if="{{item.wealth > 0}}">理财 {{util.fmtMoney(item.wealth)}}</text>
+        <text class="bi-type" wx:if="{{item.current > 0}}">活期 {{util.fmtMoney(item.current)}}</text>
+      </view>
+
+      <!-- 展开明细 -->
+      <view class="bi-detail" wx:if="{{item.expanded}}">
+        <view class="bd-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="sub">
+          <view class="bd-top">
+            <text class="bd-amount">{{util.fmtMoney(sub.amount)}}</text>
+            <text class="bd-type type-{{sub.type}}">{{util.TYPE_LABELS[sub.type]}}</text>
+          </view>
+          <view class="bd-bot">
+            <text class="bd-rate">{{sub.rate}}%</text>
+            <text wx:if="{{sub.end}}" class="bd-date">{{util.fmtDate(sub.start)}} ~ {{util.fmtDate(sub.end)}}</text>
+            <text wx:else class="bd-date">{{util.fmtDate(sub.start)}} ~ 长期</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>

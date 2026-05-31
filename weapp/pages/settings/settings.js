@@ -40,27 +40,35 @@ Page({
       encoding: 'utf-8',
       success: function () {
         wx.showActionSheet({
-          itemList: ['分享/保存文件'],
-          success: function () {
-            wx.shareFileMessage({
-              filePath: filePath,
-              fileName: fileName,
-              success: function () {
-                wx.showToast({ title: '导出成功', icon: 'success' });
-              },
-              fail: function () {
-                // 分享失败，尝试保存到本地
-                wx.saveFile({
-                  tempFilePath: filePath,
-                  success: function () {
-                    wx.showToast({ title: '已保存到本地', icon: 'success' });
-                  },
-                  fail: function () {
-                    wx.showToast({ title: '导出完成，文件在:' + filePath, icon: 'none' });
-                  }
-                });
-              }
-            });
+          itemList: ['分享/保存文件', '复制到剪贴板'],
+          success: function (res) {
+            if (res.tapIndex === 0) {
+              wx.shareFileMessage({
+                filePath: filePath,
+                fileName: fileName,
+                success: function () {
+                  wx.showToast({ title: '导出成功', icon: 'success' });
+                },
+                fail: function () {
+                  wx.saveFile({
+                    tempFilePath: filePath,
+                    success: function () {
+                      wx.showToast({ title: '已保存到本地', icon: 'success' });
+                    },
+                    fail: function () {
+                      wx.showToast({ title: '导出完成', icon: 'none' });
+                    }
+                  });
+                }
+              });
+            } else {
+              wx.setClipboardData({
+                data: jsonStr,
+                success: function () {
+                  wx.showToast({ title: '已复制到剪贴板', icon: 'success' });
+                }
+              });
+            }
           }
         });
       },
@@ -77,6 +85,37 @@ Page({
 
   hideImport: function () {
     this.setData({ showImport: false });
+  },
+
+  // 从剪贴板粘贴导入（解决.json文件选不了的问题）
+  pasteImport: function () {
+    var self = this;
+    wx.getClipboardData({
+      success: function (res) {
+        var data = res.data;
+        if (!data) {
+          wx.showToast({ title: '剪贴板为空', icon: 'none' });
+          return;
+        }
+        try {
+          var parsed = JSON.parse(data);
+          var records = Array.isArray(parsed) ? parsed : (parsed.records || []);
+          if (records.length === 0) {
+            wx.showToast({ title: '剪贴板中没有有效记录', icon: 'none' });
+            return;
+          }
+          store.saveRecords(records);
+          self.hideImport();
+          wx.showToast({ title: '导入成功: ' + records.length + ' 条', icon: 'success' });
+          self.setData({ recordCount: records.length });
+        } catch (e) {
+          wx.showToast({ title: '剪贴板内容不是有效JSON', icon: 'none' });
+        }
+      },
+      fail: function () {
+        wx.showToast({ title: '读取剪贴板失败', icon: 'none' });
+      }
+    });
   },
 
   chooseFile: function () {

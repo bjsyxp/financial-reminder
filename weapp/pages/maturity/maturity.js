@@ -1,11 +1,12 @@
-// 到期详情页
+// 到期详情页 — 仅保留1/2/3年分级，去除已过期和4年+
 var util = require('../../utils/util');
 var store = require('../../utils/store');
 
 Page({
   data: {
-    groups: { expired: [], today: [], urgent: [], soon: [], safe: [], current: [] },
+    groups: { y1: [], y2: [], y3: [], current: [] },
     chipData: {},
+    stats: { y1: 0, y2: 0, y3: 0, count: 0 },
     util: util
   },
 
@@ -15,8 +16,9 @@ Page({
 
   refresh: function () {
     var records = store.loadRecords();
-    var groups = { expired: [], y1: [], y2: [], y3: [], y4: [], current: [] };
+    var groups = { y1: [], y2: [], y3: [], current: [] };
     var chipData = {};
+    var stats = { y1: 0, y2: 0, y3: 0, count: 0 };
 
     records.forEach(function (r) {
       if (r.type === 'current') {
@@ -24,26 +26,23 @@ Page({
         return;
       }
       var days = util.getDaysRemaining(r.end);
+      if (days < 0 || days > 1095) return; // 跳过已过期和4年+
       chipData[r.id] = util.getChip(days);
 
-      if (days < 0) groups.expired.push(r);
-      else if (days <= 365) groups.y1.push(r);
-      else if (days <= 730) groups.y2.push(r);
-      else if (days <= 1095) groups.y3.push(r);
-      else groups.y4.push(r);
+      if (days <= 365) { groups.y1.push(r); stats.y1 += r.amount || 0; }
+      else if (days <= 730) { groups.y2.push(r); stats.y2 += r.amount || 0; }
+      else { groups.y3.push(r); stats.y3 += r.amount || 0; }
+      stats.count++;
     });
 
-    // 每组内部按到期日排序（最早在前）
     function sortByEnd(arr) {
       arr.sort(function (a, b) { return (a.end || '').localeCompare(b.end || ''); });
     }
-    sortByEnd(groups.expired);
-    sortByEnd(groups.today);
-    sortByEnd(groups.urgent);
-    sortByEnd(groups.soon);
-    sortByEnd(groups.safe);
+    sortByEnd(groups.y1);
+    sortByEnd(groups.y2);
+    sortByEnd(groups.y3);
 
-    this.setData({ groups: groups, chipData: chipData });
+    this.setData({ groups: groups, chipData: chipData, stats: stats });
   },
 
   editRecord: function (e) {

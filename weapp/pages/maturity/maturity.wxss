@@ -1,43 +1,63 @@
-/* 到期详情页 */
-.page { padding: 12px; padding-bottom: 30px; }
+/* 到期页 — 全新设计 */
+.page { padding: 0; padding-bottom: 20px; min-height: 100vh; }
 
-.section { margin-bottom: 16px; }
-.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.section-dot { width: 10px; height: 10px; border-radius: 50%; }
-.section-dot.expired { background: #dc2626; }
-.section-dot.today { background: #d97706; }
-.section-dot.urgent { background: #c2410c; }
-.section-dot.soon { background: #2563eb; }
-.section-dot.ok { background: #059669; }
-.section-dot.current { background: #8b5cf6; }
-.section-title { font-size: 15px; font-weight: 600; color: #1e293b; }
-.section-body { display: flex; flex-direction: column; gap: 6px; }
-.empty-section { padding: 12px; text-align: center; font-size: 13px; color: #94a3b8; }
-
-.m-item {
-  background: white; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0;
+/* ─── 顶部英雄区 ─── */
+.hero {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white; padding: 28px 20px 24px; border-radius: 0 0 24px 24px;
+  margin-bottom: 16px;
 }
-.m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.m-inst { font-size: 14px; font-weight: 600; }
-.m-amount { font-size: 14px; font-weight: 700; color: #2563eb; }
-.m-mid { display: flex; gap: 8px; margin-bottom: 6px; }
-.m-type { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #f1f5f9; color: #64748b; }
-.m-rate { font-size: 11px; color: #64748b; }
-.m-bot { display: flex; justify-content: space-between; align-items: center; }
-.tag { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
-.m-end { font-size: 11px; color: #94a3b8; }
+.hero-title { font-size: 15px; opacity: 0.8; margin-bottom: 16px; }
+.hero-row { display: flex; gap: 16px; }
+.hero-item { flex: 1; }
+.hero-num { font-size: 28px; font-weight: 800; display: block; margin-bottom: 2px; }
+.hero-num.hero-num-o { color: #fbbf24; }
+.hero-label { font-size: 12px; opacity: 0.7; }
 
-/* 到期标签颜色 — 按年分级 */
-.tag-expired { background: #fee2e2; color: #dc2626; }
-.tag-y1      { background: #fef3c7; color: #d97706; }
-.tag-y2      { background: #dbeafe; color: #2563eb; }
-.tag-y3      { background: #d1fae5; color: #059669; }
-.tag-y4      { background: #ede9fe; color: #8b5cf6; }
+/* ─── 分组 ─── */
+.section { margin: 0 14px 16px; }
+.sec-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  background: white; border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.sec-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.sec-dot.dot-o { background: #d97706; }
+.sec-dot.dot-b { background: #2563eb; }
+.sec-dot.dot-g { background: #059669; }
+.sec-title { font-size: 14px; font-weight: 600; flex: 1; }
+.sec-amount { font-size: 13px; font-weight: 700; color: #64748b; }
+.sec-body { display: flex; flex-direction: column; gap: 8px; }
 
-/* 分组圆点 */
-.section-dot.expired { background: #dc2626; }
-.section-dot.y1 { background: #d97706; }
-.section-dot.y2 { background: #2563eb; }
-.section-dot.y3 { background: #059669; }
-.section-dot.y4 { background: #8b5cf6; }
-.section-dot.current { background: #8b5cf6; }
+/* ─── 卡片 ─── */
+.m-card {
+  background: white; border-radius: 14px; padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #f0f0f0;
+  transition: all 0.2s;
+}
+.m-card:active { transform: scale(0.98); background: #fafbfc; }
+.mc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.mc-inst { font-size: 15px; font-weight: 600; }
+.mc-amount { font-size: 16px; font-weight: 800; color: #2563eb; }
+.mc-mid { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.mc-type { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.type-deposit { background: #d1fae5; color: #059669; }
+.type-wealth { background: #dbeafe; color: #2563eb; }
+.mc-rate { font-size: 12px; color: #64748b; }
+.mc-date { font-size: 11px; color: #94a3b8; }
+.mc-bot { display: flex; justify-content: flex-end; }
+
+/* ─── 到期标签 ─── */
+.chip { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+.chip-o { background: #fef3c7; color: #d97706; }
+.chip-b { background: #dbeafe; color: #2563eb; }
+.chip-g { background: #d1fae5; color: #059669; }
+
+/* ─── 空状态 ─── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 80px 0; color: #94a3b8;
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
