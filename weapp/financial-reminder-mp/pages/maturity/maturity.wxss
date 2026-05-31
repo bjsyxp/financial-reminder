@@ -1,0 +1,43 @@
+/* 到期详情页 */
+.page { padding: 12px; padding-bottom: 30px; }
+
+.section { margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.section-dot { width: 10px; height: 10px; border-radius: 50%; }
+.section-dot.expired { background: #dc2626; }
+.section-dot.today { background: #d97706; }
+.section-dot.urgent { background: #c2410c; }
+.section-dot.soon { background: #2563eb; }
+.section-dot.ok { background: #059669; }
+.section-dot.current { background: #8b5cf6; }
+.section-title { font-size: 15px; font-weight: 600; color: #1e293b; }
+.section-body { display: flex; flex-direction: column; gap: 6px; }
+.empty-section { padding: 12px; text-align: center; font-size: 13px; color: #94a3b8; }
+
+.m-item {
+  background: white; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0;
+}
+.m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.m-inst { font-size: 14px; font-weight: 600; }
+.m-amount { font-size: 14px; font-weight: 700; color: #2563eb; }
+.m-mid { display: flex; gap: 8px; margin-bottom: 6px; }
+.m-type { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #f1f5f9; color: #64748b; }
+.m-rate { font-size: 11px; color: #64748b; }
+.m-bot { display: flex; justify-content: space-between; align-items: center; }
+.tag { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
+.m-end { font-size: 11px; color: #94a3b8; }
+
+/* 到期标签颜色 — 按年分级 */
+.tag-expired { background: #fee2e2; color: #dc2626; }
+.tag-y1      { background: #fef3c7; color: #d97706; }
+.tag-y2      { background: #dbeafe; color: #2563eb; }
+.tag-y3      { background: #d1fae5; color: #059669; }
+.tag-y4      { background: #ede9fe; color: #8b5cf6; }
+
+/* 分组圆点 */
+.section-dot.expired { background: #dc2626; }
+.section-dot.y1 { background: #d97706; }
+.section-dot.y2 { background: #2563eb; }
+.section-dot.y3 { background: #059669; }
+.section-dot.y4 { background: #8b5cf6; }
+.section-dot.current { background: #8b5cf6; }

@@ -1,0 +1,94 @@
+<!-- 到期详情页 -->
+<view class="page">
+
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot expired"></view>
+      <text class="section-title">已过期（{{groups.expired.length}}）</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.expired.length > 0}}">
+      <view class="m-item" wx:for="{{groups.expired}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-expired">{{chipData[item.id].text}}</text><text class="m-end">到期 {{util.fmtDate(item.end)}}</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>✅ 无过期记录</text></view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot y1"></view>
+      <text class="section-title">1年内到期（{{groups.y1.length}}）</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.y1.length > 0}}">
+      <view class="m-item" wx:for="{{groups.y1}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-y1">{{chipData[item.id].text}}</text><text class="m-end">到期 {{util.fmtDate(item.end)}}</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>✅ 无1年内到期</text></view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot y2"></view>
+      <text class="section-title">2年内到期（{{groups.y2.length}}）</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.y2.length > 0}}">
+      <view class="m-item" wx:for="{{groups.y2}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-y2">{{chipData[item.id].text}}</text><text class="m-end">到期 {{util.fmtDate(item.end)}}</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>✅ 无2年内到期</text></view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot y3"></view>
+      <text class="section-title">3年内到期（{{groups.y3.length}}）</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.y3.length > 0}}">
+      <view class="m-item" wx:for="{{groups.y3}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-y3">{{chipData[item.id].text}}</text><text class="m-end">到期 {{util.fmtDate(item.end)}}</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>✅ 无3年内到期</text></view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot y4"></view>
+      <text class="section-title">4年及以上（{{groups.y4.length}}）</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.y4.length > 0}}">
+      <view class="m-item" wx:for="{{groups.y4}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-y4">{{chipData[item.id].text}}</text><text class="m-end">到期 {{util.fmtDate(item.end)}}</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>✅ 无4年内到期</text></view>
+  </view>
+
+  <!-- 活期 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-dot current"></view>
+      <text class="section-title">活期 ({{groups.current.length}})</text>
+    </view>
+    <view class="section-body" wx:if="{{groups.current.length > 0}}">
+      <view class="m-item" wx:for="{{groups.current}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="m-top"><text class="m-inst">{{item.inst}}</text><text class="m-amount">{{util.fmtMoney(item.amount)}}</text></view>
+        <view class="m-mid"><text class="m-type">{{util.TYPE_LABELS[item.type]}}</text><text class="m-rate">{{item.rate}}%</text></view>
+        <view class="m-bot"><text class="tag tag-ok">无到期</text><text class="m-end">长期持有</text></view>
+      </view>
+    </view>
+    <view class="empty-section" wx:else><text>—</text></view>
+  </view>
+</view>

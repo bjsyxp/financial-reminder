@@ -1,0 +1,20 @@
+/* 银行汇总 */
+.page { padding: 12px; min-height: 100vh; }
+
+.total-row { margin-bottom: 12px; }
+.total-card {
+  background: linear-gradient(135deg, #1e40af, #2563eb); color: white;
+  border-radius: 16px; padding: 24px; text-align: center;
+}
+.total-label { font-size: 13px; opacity: 0.8; }
+.total-value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+.total-sub { font-size: 12px; opacity: 0.6; }
+
+.bank-list { display: flex; flex-direction: column; gap: 8px; }
+.bank-item {
+  background: white; border-radius: 12px; padding: 14px; border: 1px solid #e2e8f0;
+}
+.bank-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.bank-name { font-size: 15px; font-weight: 600; }
+.bank-total { font-size: 16px; font-weight: 700; color: #2563eb; }
+.bank-stats { display: flex; gap: 10px; font-size: 11px; color: #64748b; flex-wrap: wrap; }

@@ -1,0 +1,61 @@
+<!-- 添加/编辑资产 -->
+<view class="page">
+  <view class="form">
+    <!-- 类型选择 -->
+    <view class="form-group">
+      <text class="form-label">类型</text>
+      <view class="type-select">
+        <view class="type-option {{form.type === 'deposit' ? 'active' : ''}} type-g"
+          bindtap="setType" data-type="deposit">定期存款</view>
+        <view class="type-option {{form.type === 'wealth' ? 'active' : ''}} type-b"
+          bindtap="setType" data-type="wealth">理财产品</view>
+        <view class="type-option {{form.type === 'current' ? 'active' : ''}} type-p"
+          bindtap="setType" data-type="current">活期存款</view>
+      </view>
+    </view>
+
+    <!-- 机构 -->
+    <view class="form-group">
+      <text class="form-label">机构名称</text>
+      <input class="form-input" placeholder="如：工商银行" value="{{form.inst}}" bindinput="onInput" data-field="inst" />
+    </view>
+
+    <!-- 金额 -->
+    <view class="form-group">
+      <text class="form-label">金额（元）</text>
+      <input class="form-input" type="digit" placeholder="输入金额" value="{{form.amount}}" bindinput="onInput" data-field="amount" />
+    </view>
+
+    <!-- 年利率 -->
+    <view class="form-group">
+      <text class="form-label">年利率（%）</text>
+      <input class="form-input" type="digit" placeholder="如：3.5" value="{{form.rate}}" bindinput="onInput" data-field="rate" />
+    </view>
+
+    <!-- 起息日 -->
+    <view class="form-group">
+      <text class="form-label">起息日</text>
+      <picker mode="date" value="{{form.start}}" bindchange="onDateChange" data-field="start">
+        <view class="form-input form-picker">{{form.start || '选择日期'}}</view>
+      </picker>
+    </view>
+
+    <!-- 到期日（活期不可选） -->
+    <view class="form-group" wx:if="{{form.type !== 'current'}}">
+      <text class="form-label">到期日</text>
+      <picker mode="date" value="{{form.end}}" bindchange="onDateChange" data-field="end">
+        <view class="form-input form-picker">{{form.end || '选择日期'}}</view>
+      </picker>
+    </view>
+
+    <!-- 备注 -->
+    <view class="form-group">
+      <text class="form-label">备注</text>
+      <input class="form-input" placeholder="可选" value="{{form.memo}}" bindinput="onInput" data-field="memo" />
+    </view>
+
+    <!-- 按钮 -->
+    <button class="form-btn" bindtap="onSave">{{editId ? '保存修改' : '添加记录'}}</button>
+    <button class="form-btn form-btn-cancel" wx:if="{{editId}}" bindtap="onCancel">取消</button>
+  </view>
+</view>
