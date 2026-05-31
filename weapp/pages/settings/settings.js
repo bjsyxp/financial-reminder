@@ -31,7 +31,7 @@ Page({
     }
     var jsonStr = JSON.stringify(records, null, 2);
     var fs = wx.getFileSystemManager();
-    var fileName = '理财数据_' + util.todayStr() + '.json';
+    var fileName = '理财数据_' + util.todayStr() + '.txt';
     var filePath = wx.env.USER_DATA_PATH + '/' + fileName;
 
     fs.writeFile({
@@ -122,7 +122,7 @@ Page({
     var self = this;
     wx.chooseMessageFile({
       count: 1,
-      type: 'file',
+      type: 'all',
       success: function (res) {
         var file = res.tempFiles[0];
         var fs = wx.getFileSystemManager();

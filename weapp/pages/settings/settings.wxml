@@ -45,8 +45,9 @@
   <view class="modal-overlay {{showImport ? 'show' : ''}}">
     <view class="modal">
       <text class="modal-title">导入数据</text>
-      <text class="modal-tip">从备份文件恢复数据，将替换当前所有记录</text>
+      <text class="modal-tip">从聊天文件恢复数据，将替换当前所有记录</text>
       <button class="modal-btn" bindtap="chooseFile">从聊天选择文件</button>
+      <text class="modal-hint">提示：在文件列表中勾选文件（不要点文件名），点确定</text>
       <button class="modal-btn modal-btn-cancel" bindtap="pasteImport">从剪贴板粘贴</button>
       <button class="modal-btn modal-btn-cancel" bindtap="hideImport">取消</button>
     </view>
