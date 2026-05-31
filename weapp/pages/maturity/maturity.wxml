@@ -93,8 +93,33 @@
     </view>
   </view>
 
+  <!-- 活期 -->
+  <view class="section" wx:if="{{groups.current.length > 0}}">
+    <view class="sec-head">
+      <view class="sec-dot dot-p"></view>
+      <text class="sec-title">活期存款</text>
+      <text class="sec-amount">{{util.fmtMoney(stats.current)}}</text>
+    </view>
+    <view class="sec-body">
+      <view class="m-card" wx:for="{{groups.current}}" wx:key="id" bindtap="editRecord" data-id="{{item.id}}">
+        <view class="mc-top">
+          <text class="mc-inst">{{item.inst}}</text>
+          <text class="mc-amount">{{util.fmtMoney(item.amount)}}</text>
+        </view>
+        <view class="mc-mid">
+          <text class="mc-type type-current">活期</text>
+          <text class="mc-rate">{{item.rate}}%</text>
+          <text class="mc-date">{{util.fmtDate(item.start)}} ~ 长期</text>
+        </view>
+        <view class="mc-bot">
+          <text class="chip chip-p">无到期</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 全部为空 -->
-  <view class="empty-state" wx:if="{{stats.count === 0}}">
+  <view class="empty-state" wx:if="{{totalCount === 0}}">
     <text class="empty-icon">🎉</text>
     <text class="empty-text">暂无即将到期的资产</text>
   </view>

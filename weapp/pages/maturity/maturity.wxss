@@ -25,6 +25,7 @@
 .sec-dot.dot-o { background: #d97706; }
 .sec-dot.dot-b { background: #2563eb; }
 .sec-dot.dot-g { background: #059669; }
+.sec-dot.dot-p { background: #8b5cf6; }
 .sec-title { font-size: 14px; font-weight: 600; flex: 1; }
 .sec-amount { font-size: 13px; font-weight: 700; color: #64748b; }
 .sec-body { display: flex; flex-direction: column; gap: 8px; }
@@ -44,6 +45,7 @@
 .mc-type { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
 .type-deposit { background: #d1fae5; color: #059669; }
 .type-wealth { background: #dbeafe; color: #2563eb; }
+.type-current { background: #ede9fe; color: #8b5cf6; }
 .mc-rate { font-size: 12px; color: #64748b; }
 .mc-date { font-size: 11px; color: #94a3b8; }
 .mc-bot { display: flex; justify-content: flex-end; }
@@ -53,6 +55,7 @@
 .chip-o { background: #fef3c7; color: #d97706; }
 .chip-b { background: #dbeafe; color: #2563eb; }
 .chip-g { background: #d1fae5; color: #059669; }
+.chip-p { background: #ede9fe; color: #8b5cf6; }
 
 /* ─── 空状态 ─── */
 .empty-state {

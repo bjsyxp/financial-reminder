@@ -6,7 +6,8 @@ Page({
   data: {
     groups: { y1: [], y2: [], y3: [], current: [] },
     chipData: {},
-    stats: { y1: 0, y2: 0, y3: 0, count: 0 },
+    stats: { y1: 0, y2: 0, y3: 0, current: 0, count: 0 },
+    totalCount: 0,
     util: util
   },
 
@@ -18,11 +19,14 @@ Page({
     var records = store.loadRecords();
     var groups = { y1: [], y2: [], y3: [], current: [] };
     var chipData = {};
-    var stats = { y1: 0, y2: 0, y3: 0, count: 0 };
+    var stats = { y1: 0, y2: 0, y3: 0, current: 0, count: 0 };
+    var totalCount = 0;
 
     records.forEach(function (r) {
+      totalCount++;
       if (r.type === 'current') {
         groups.current.push(r);
+        stats.current += r.amount || 0;
         return;
       }
       var days = util.getDaysRemaining(r.end);
@@ -42,7 +46,7 @@ Page({
     sortByEnd(groups.y2);
     sortByEnd(groups.y3);
 
-    this.setData({ groups: groups, chipData: chipData, stats: stats });
+    this.setData({ groups: groups, chipData: chipData, stats: stats, totalCount: totalCount });
   },
 
   editRecord: function (e) {
