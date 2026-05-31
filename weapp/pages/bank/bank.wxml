@@ -18,9 +18,9 @@
         </view>
       </view>
       <view class="bi-types" wx:if="{{!item.expanded}}">
-        <text class="bi-type" wx:if="{{item.deposit > 0}}">定期 {{item._depositWan}}</text>
-        <text class="bi-type" wx:if="{{item.wealth > 0}}">理财 {{item._wealthWan}}</text>
-        <text class="bi-type" wx:if="{{item.current > 0}}">活期 {{item._currentWan}}</text>
+        <text class="bi-type type-tag-g" wx:if="{{item.deposit > 0}}">定期 {{item._depositWan}}</text>
+        <text class="bi-type type-tag-b" wx:if="{{item.wealth > 0}}">理财 {{item._wealthWan}}</text>
+        <text class="bi-type type-tag-p" wx:if="{{item.current > 0}}">活期 {{item._currentWan}}</text>
       </view>
 
       <!-- 展开明细 -->
@@ -28,7 +28,7 @@
         <view class="bd-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="sub">
           <view class="bd-top">
             <text class="bd-amount">{{sub._amountWan}}</text>
-            <text class="bd-type type-{{sub.type}}">{{sub.type === 'deposit' ? '定期存款' : sub.type === 'wealth' ? '理财产品' : '活期存款'}}</text>
+            <text class="bd-type bd-tag-{{sub.type}}">{{sub.type === 'deposit' ? '定期存款' : sub.type === 'wealth' ? '理财产品' : '活期存款'}}</text>
           </view>
           <view class="bd-bot">
             <text class="bd-rate">{{sub.rate}}%</text>

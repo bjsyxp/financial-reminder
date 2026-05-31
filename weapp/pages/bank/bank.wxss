@@ -1,4 +1,4 @@
-/* 银行汇总 — 可展开明细 */
+/* 银行汇总 — 可展开明细 + 配色 */
 .page { padding: 12px; min-height: 100vh; background: #f1f5f9; }
 
 /* ─── 合计卡片 ─── */
@@ -8,20 +8,29 @@
   margin-bottom: 16px; box-shadow: 0 4px 20px rgba(37,99,235,0.25);
 }
 .tc-label { font-size: 13px; opacity: 0.75; display: block; margin-bottom: 4px; }
-.tc-value { font-size: 32px; font-weight: 800; display: block; margin-bottom: 4px; }
-.tc-sub { font-size: 13px; opacity: 0.6; }
+.tc-value { font-size: 32px; font-weight: 800; display: block; }
 
 /* ─── 银行列表 ─── */
 .bank-list { display: flex; flex-direction: column; gap: 10px; }
 .bank-item {
   background: white; border-radius: 16px; padding: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: all 0.2s;
+  position: relative; overflow: hidden;
 }
+.bank-item::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+}
+/* 不同类型的银行左侧色条（按户头交替颜色） */
+.bank-item:nth-child(6n+1)::before { background: #2563eb; }
+.bank-item:nth-child(6n+2)::before { background: #059669; }
+.bank-item:nth-child(6n+3)::before { background: #d97706; }
+.bank-item:nth-child(6n+4)::before { background: #8b5cf6; }
+.bank-item:nth-child(6n+5)::before { background: #dc2626; }
+.bank-item:nth-child(6n+6)::before { background: #0891b2; }
 .bank-item:active { transform: scale(0.99); }
 
 /* ─── 顶部 ─── */
-.bi-top { display: flex; justify-content: space-between; align-items: center; }
+.bi-top { display: flex; justify-content: space-between; align-items: center; padding-left: 8px; }
 .bi-left { display: flex; flex-direction: column; gap: 2px; }
 .bi-name { font-size: 16px; font-weight: 700; }
 .bi-count { font-size: 11px; color: #94a3b8; }
@@ -30,22 +39,28 @@
 .bi-arrow { font-size: 22px; color: #94a3b8; transition: transform 0.2s; }
 .bi-arrow.up { transform: rotate(90deg); }
 
-/* ─── 类型标签（收起时） ─── */
-.bi-types { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.bi-type { font-size: 11px; color: #64748b; background: #f8fafc; padding: 3px 10px; border-radius: 6px; }
+/* ─── 类型标签（收起时）配色 ─── */
+.bi-types { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; padding-left: 8px; }
+.bi-type { font-size: 11px; padding: 3px 10px; border-radius: 6px; font-weight: 500; }
+.type-tag-g { background: #d1fae5; color: #059669; }
+.type-tag-b { background: #dbeafe; color: #2563eb; }
+.type-tag-p { background: #ede9fe; color: #8b5cf6; }
 
 /* ─── 展开明细 ─── */
-.bi-detail { margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.bi-detail { margin-top: 12px; border-top: 1px solid #f1f5f9; padding: 10px 0 0 8px; display: flex; flex-direction: column; gap: 8px; }
 .bd-item {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 12px; background: #f8fafc; border-radius: 10px;
+  padding: 10px 14px; background: #f8fafc; border-radius: 10px;
+  border-left: 3px solid transparent;
 }
-.bd-top { display: flex; flex-direction: column; gap: 2px; }
-.bd-amount { font-size: 14px; font-weight: 600; }
-.bd-type { font-size: 10px; padding: 1px 6px; border-radius: 3px; display: inline-block; width: fit-content; }
-.bd-type.type-deposit { background: #d1fae5; color: #059669; }
-.bd-type.type-wealth { background: #dbeafe; color: #2563eb; }
-.bd-type.type-current { background: #ede9fe; color: #8b5cf6; }
+.bd-item:nth-child(odd) { background: #f8fafc; }
+.bd-item:nth-child(even) { background: #f1f5f9; }
+.bd-top { display: flex; flex-direction: column; gap: 3px; }
+.bd-amount { font-size: 14px; font-weight: 700; }
+.bd-type { font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-block; width: fit-content; font-weight: 500; }
+.bd-tag-deposit { background: #d1fae5; color: #059669; }
+.bd-tag-wealth { background: #dbeafe; color: #2563eb; }
+.bd-tag-current { background: #ede9fe; color: #8b5cf6; }
 .bd-bot { text-align: right; }
-.bd-rate { font-size: 13px; font-weight: 600; display: block; }
+.bd-rate { font-size: 14px; font-weight: 700; display: block; color: #1e293b; }
 .bd-date { font-size: 10px; color: #94a3b8; }
